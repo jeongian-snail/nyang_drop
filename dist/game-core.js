@@ -1,4 +1,5 @@
 import { visibleCatsTouch } from './merge-contact.js';
+import { createSeededRandom, normalizeSeed } from './seed.js';
 export { SPRITE } from './cat-outlines.js';
 
 export const RULES = Object.freeze({
@@ -30,13 +31,16 @@ export const mergePoints = (level) => (level > 0 && level < 10 ? 10 * 2 ** (leve
 export const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
 
 export class CatGame {
-  constructor(Matter, { random = Math.random, onEvent = () => {} } = {}) {
+  constructor(Matter, { seed = null, random = Math.random, onEvent = () => {} } = {}) {
     this.M = Matter;
-    this.random = random;
+    this.defaultRandom = random;
+    this.seed = normalizeSeed(seed) || null;
     this.onEvent = onEvent;
     this.reset();
   }
-  reset() {
+  reset({ seed = this.seed } = {}) {
+    this.seed = normalizeSeed(seed) || null;
+    this.random = this.seed === null ? this.defaultRandom : createSeededRandom(this.seed);
     const { Engine, Events, Composite, Bodies } = this.M;
     if (this.engine) {
       Events.off(this.engine);

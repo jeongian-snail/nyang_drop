@@ -71,9 +71,9 @@
     </script>
     <link rel="icon" href="./assets/02_orange_tabby.png" />
     <link rel="preload" as="image" href="./assets/nyang-drop-logo.png" />
-    <link rel="stylesheet" href="./style.css?v=17" />
+    <link rel="stylesheet" href="./style.css?v=18" />
     <script defer data-game-startup src="./vendor/matter.min.js"></script>
-    <script type="module" data-game-startup src="./app.js?v=19"></script>
+    <script type="module" data-game-startup src="./app.js?v=20"></script>
   </head>
   <body>
     <div class="room-backdrop" aria-hidden="true"></div>
@@ -157,19 +157,6 @@
     </div>
     <main id="game-layout" class="game-layout intro-concealed" inert aria-label="냥냥 드롭">
       <aside class="intro-column">
-        <div class="next-card paper-card">
-          <div class="card-label">다음 고양이 <span>NEXT</span></div>
-          <div class="next-cat-wrap">
-            <img id="next-image" src="./assets/01_gray_tabby.png" alt="다음 고양이" /><span
-              class="next-spark"
-              >✦</span
-            >
-          </div>
-          <div class="next-bottom">
-            <span id="next-name">회색 태비</span
-            ><span class="level-tag" id="next-level">Lv. 1</span>
-          </div>
-        </div>
         <section class="instructions-card paper-card" aria-labelledby="instructions-title">
           <h2 id="instructions-title" class="card-title">게임 안내</h2>
           <ol class="instruction-list">
@@ -192,14 +179,26 @@
         <div class="mobile-score paper-card">
           <div><span>점수</span><b id="score-mobile">0</b></div>
           <div><span>최고 기록</span><b id="best-mobile">0</b></div>
-          <div class="mobile-next">
-            <span class="mobile-next-meta"
-              ><span>다음</span><span class="level-tag" id="next-level-mobile">Lv. 1</span></span
-            ><span class="mobile-next-preview"
-              ><img id="next-mobile" src="./assets/01_gray_tabby.png" alt="다음 고양이"
-            /></span>
-          </div>
         </div>
+        <form id="seed-form" class="seed-form" aria-label="게임 시드 설정">
+          <div class="seed-controls">
+            <label for="seed-input">시드</label>
+            <input
+              id="seed-input"
+              type="text"
+              maxlength="64"
+              placeholder="비워 두면 랜덤"
+              autocomplete="off"
+              autocapitalize="off"
+              spellcheck="false"
+              aria-describedby="seed-help seed-status"
+              disabled
+            />
+            <button id="seed-apply" type="submit" disabled>적용</button>
+          </div>
+          <p id="seed-help">같은 시드로 같은 순서에 도전해요.</p>
+          <p id="seed-status">현재 시드 <output id="active-seed" for="seed-input"></output></p>
+        </form>
         <div class="board-top">
           <div class="toolbar">
             <button class="icon-button" id="help-button" aria-label="게임 방법" title="게임 방법">

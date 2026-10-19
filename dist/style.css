@@ -3,5 +3,5 @@
 /* Keep the cascade ordered: layout, room, paper cards, then intro. */
 @import url('./styles/base.css');
 @import url('./styles/room.css');
-@import url('./styles/cards.css');
+@import url('./styles/cards.css?v=2');
 @import url('./styles/intro.css');

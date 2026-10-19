@@ -1,4 +1,4 @@
-/* Shared paper cards match the next-cat reference at every breakpoint. */
+/* Shared paper cards keep the same treatment at every breakpoint. */
 :root {
   --card-background: #fffdf4;
   --card-border: #ddceb4;
@@ -9,6 +9,9 @@
 }
 .game-layout > * {
   min-width: 0;
+}
+.game-layout {
+  --board-width: min(600px, max(240px, calc((100svh - 230px) * 440 / 650)));
 }
 .paper-card {
   position: relative;
@@ -44,9 +47,11 @@
   letter-spacing: -0.3px;
   color: var(--ink);
 }
-.instructions-card,
 .collection.paper-card {
   margin-top: 20px;
+}
+.instructions-card {
+  margin-top: 0;
 }
 .instructions-card .card-title {
   margin-bottom: 15px;
@@ -105,6 +110,9 @@
   }
 }
 @media (max-width: 820px) {
+  .game-layout {
+    --board-width: min(600px, max(240px, calc((100svh - 292px) * 440 / 650)));
+  }
   .game-layout > .play-column {
     order: 0;
   }
@@ -116,9 +124,6 @@
   }
   .game-layout > .collection-column {
     order: 2;
-  }
-  .intro-column > .next-card {
-    display: none;
   }
   .instructions-card,
   .collection.paper-card {
@@ -234,37 +239,72 @@
   background: #e7ecdf;
   border-color: #a2ad92;
 }
-.next-cat-wrap {
-  --next-preview-size: 105px;
+.seed-form {
+  margin-bottom: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  background: var(--card-background);
+  color: var(--ink);
 }
-.mobile-next-preview {
-  --next-preview-size: 48px;
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  width: var(--next-preview-size);
-  height: var(--next-preview-size);
-}
-.next-cat-wrap img,
-.mobile-next-preview img {
-  width: calc(var(--next-preview-size) * var(--next-scale, 0.5));
-  height: calc(var(--next-preview-size) * var(--next-scale, 0.5));
-  object-fit: contain;
-}
-.mobile-next-meta {
+.seed-controls {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
+  align-items: center;
+  gap: 8px;
 }
-.mobile-next-meta .level-tag {
-  color: #9b8b6b;
-  font-size: 9px;
+.seed-controls label {
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.seed-controls input {
+  min-width: 0;
+  flex: 1;
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid var(--card-border);
+  border-radius: 5px;
+  background: #fffefa;
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+}
+.seed-controls input:focus-visible,
+.seed-controls button:focus-visible {
+  outline: 2px solid #788466;
+  outline-offset: 2px;
+}
+.seed-controls button {
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 5px;
+  background: #788466;
+  color: white;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.seed-controls :disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.seed-form p {
+  margin: 6px 0 0;
+  color: #776e5e;
+  font-size: 10px;
+  line-height: 1.5;
+}
+#seed-status {
+  display: flex;
+  gap: 6px;
+}
+#active-seed {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
-  padding: 3px 5px;
-}
-@media (min-width: 1000px) and (max-height: 850px) {
-  .next-cat-wrap {
-    --next-preview-size: 88px;
-  }
+  font-weight: 600;
 }

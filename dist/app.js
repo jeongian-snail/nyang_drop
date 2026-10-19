@@ -1,4 +1,5 @@
-import { CatGame, CATS, RULES, SPRITE, clamp } from './game-core.js?v=4';
+import { CatGame, CATS, RULES, SPRITE, clamp } from './game-core.js?v=5';
+import { createSeed, normalizeSeed } from './seed.js';
 import { createIntro } from './intro.js?v=3';
 import { createGameAudio } from './audio.js?v=3';
 import { CAT_OUTLINES } from './cat-outlines.js';
@@ -59,7 +60,8 @@ let game,
   loaded = false,
   activePointer = null,
   modalKind = null,
-  returnState = null;
+  returnState = null,
+  pendingRestartSeed = null;
 let primaryAction = () => {},
   secondaryAction = () => {},
   toastUntil = 0;
@@ -195,6 +197,8 @@ function showModal({
   $('modal-footnote').hidden = !footnote;
   $('pause-button').disabled = true;
   $('restart-button').disabled = true;
+  $('seed-input').disabled = true;
+  $('seed-apply').disabled = true;
   if (!intro.active && (loaded || kind === 'error')) {
     $('primary-button').focus({ preventScroll: true });
   }
@@ -206,6 +210,8 @@ function hideModal() {
   previousTime = performance.now();
   $('pause-button').disabled = game.state !== 'playing';
   $('restart-button').disabled = false;
+  $('seed-input').disabled = false;
+  $('seed-apply').disabled = false;
   canvas.focus({ preventScroll: true });
   syncAudio();
 }
@@ -218,10 +224,11 @@ function start() {
   hideModal();
   updateUI(true);
 }
-function restart() {
+function restart(seed = game.seed) {
   cancelPointer();
   stopAudio();
-  game.reset();
+  game.reset({ seed });
+  syncSeed();
   particles.length = 0;
   labels.length = 0;
   toastUntil = 0;
@@ -255,18 +262,20 @@ function paused() {
   });
   updateUI(true);
 }
-function confirmRestart(previous = null) {
+function confirmRestart(previous = null, seed = game.seed) {
   returnState = previous || game.state;
+  pendingRestartSeed = seed;
   game.pause();
   showModal({
     kind: 'restart',
     eyebrow: 'RESTART',
     title: '새로 시작할까요?',
-    description: '이번 판의 고양이와 점수는 초기화돼요.<br>최고 기록은 그대로 남아요.',
+    description: '이번 판의 고양이와 점수는 초기화돼요.<br>선택한 시드의 첫 고양이부터 시작해요.',
     button: '새 게임 시작',
-    action: restart,
+    action: () => restart(seed),
     secondary: '계속 플레이하기',
     onSecondary: () => {
+      syncSeed();
       if (returnState === 'pause' || returnState === 'paused') {
         game.resume();
         paused();
@@ -297,7 +306,7 @@ function help() {
       if (prior === 'over') {
         gameOver();
       } else if (prior === 'restart') {
-        confirmRestart(returnState);
+        confirmRestart(returnState, pendingRestartSeed);
       } else if (wasPlaying) {
         game.resume();
         hideModal();
@@ -384,7 +393,7 @@ function updateUI(force = false) {
   if (!game) {
     return;
   }
-  const key = `${game.score}:${best}:${game.current}:${game.next}:${game.discovered.size}:${game.state}`;
+  const key = `${game.score}:${best}:${game.current}:${game.discovered.size}:${game.state}`;
   if (force || key !== lastUI) {
     lastUI = key;
     for (const id of ['score', 'score-mobile']) {
@@ -392,20 +401,6 @@ function updateUI(force = false) {
     }
     for (const id of ['best', 'best-mobile']) {
       $(id).textContent = best.toLocaleString('ko-KR');
-    }
-    const nextCat = CATS[game.next];
-    // The next queue draws levels 1–4. Keep their actual radius ratio inside
-    // a fixed preview slot, with level 4 filling the slot on either layout.
-    const previewScale = nextCat.radius / CATS[3].radius;
-    for (const id of ['next-image', 'next-mobile']) {
-      const preview = $(id);
-      preview.src = `./assets/${nextCat.file}`;
-      preview.alt = `다음 고양이: ${nextCat.name}, ${game.next + 1}단계`;
-      preview.setAttribute('style', `--next-scale:${previewScale}`);
-    }
-    $('next-name').textContent = nextCat.name;
-    for (const id of ['next-level', 'next-level-mobile']) {
-      $(id).textContent = `Lv. ${game.next + 1}`;
     }
     $('discovered-count').textContent = game.discovered.size;
     CATS.forEach((cat, i) => {
@@ -719,6 +714,24 @@ document.addEventListener('keydown', (event) => {
   }
 });
 $('primary-button').addEventListener('click', () => primaryAction());
+function syncSeed() {
+  $('seed-input').value = game.seed;
+  $('active-seed').textContent = game.seed;
+  $('active-seed').title = game.seed;
+}
+$('seed-form').addEventListener('submit', (event) => {
+  event.preventDefault();
+  if (!loaded || intro.active || modalKind !== null) {
+    return;
+  }
+  const seed = normalizeSeed($('seed-input').value) || createSeed();
+  // A new seed is committed only when the player confirms the new game.
+  if (game.bodies.size === 0 && game.score === 0) {
+    restart(seed);
+  } else {
+    confirmRestart(null, seed);
+  }
+});
 $('secondary-button').addEventListener('click', () => secondaryAction());
 $('pause-button').addEventListener('click', () => paused());
 $('restart-button').addEventListener('click', () => {
@@ -940,7 +953,8 @@ try {
   if (!window.Matter) {
     throw new Error('Physics engine unavailable');
   }
-  game = new CatGame(window.Matter, { onEvent: gameEvent });
+  game = new CatGame(window.Matter, { seed: createSeed(), onEvent: gameEvent });
+  syncSeed();
   updateUI(true);
   window.nyangStartup?.ready();
   await loadCatImages();

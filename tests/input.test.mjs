@@ -7,6 +7,7 @@ import { CatGame, CATS, RULES, SPRITE, clamp } from '../dist/game-core.js';
 import { createIntro } from '../dist/intro.js';
 import { createGameAudio } from '../dist/audio.js';
 import { CAT_OUTLINES } from '../dist/cat-outlines.js';
+import { createSeed, normalizeSeed } from '../dist/seed.js';
 
 // DOM adapters exercise production event handlers; they do not replace browser visual/device QA.
 async function harness({
@@ -185,6 +186,8 @@ async function harness({
     SPRITE,
     clamp,
     CAT_OUTLINES,
+    createSeed,
+    normalizeSeed,
     document,
     window,
     createGameAudio: (options) =>
@@ -269,6 +272,81 @@ async function harness({
     reloaded: () => reloaded,
   };
 }
+
+test('seed input applies the same sequence in separate browsers and restarts from the first cat', async () => {
+  const first = await harness(),
+    second = await harness();
+  for (const h of [first, second]) {
+    h.get('seed-input').value = '  친구와-42  ';
+    h.get('seed-form').fire('submit');
+    assert.equal(h.api.getGame().seed, '친구와-42');
+    assert.equal(h.get('active-seed').textContent, '친구와-42');
+    assert.equal(h.get('seed-input').value, '친구와-42');
+    assert.equal(h.api.getGame().bodies.size, 0);
+  }
+  const game = first.api.getGame();
+  const initial = [game.current, game.next];
+  assert.deepEqual(initial, [second.api.getGame().current, second.api.getGame().next]);
+  first.get('game').fire('keydown', { key: 'Enter' });
+  first.get('restart-button').fire('click');
+  first.get('primary-button').fire('click');
+  assert.deepEqual([game.current, game.next], initial);
+  assert.equal(game.seed, '친구와-42');
+});
+
+test('editing or cancelling a seed leaves the active board and sequence unchanged', async () => {
+  const h = await harness(),
+    game = h.api.getGame();
+  h.get('game').fire('keydown', { key: 'Enter' });
+  const seed = game.seed,
+    current = game.current,
+    next = game.next;
+  h.get('seed-input').value = 'new-seed';
+  assert.equal(game.seed, seed);
+  h.get('seed-form').fire('submit');
+  assert.equal(h.api.modal(), 'restart');
+  assert.equal(game.seed, seed);
+  h.document.fire('keydown', { key: 'Escape' });
+  assert.equal(game.seed, seed);
+  assert.deepEqual([game.current, game.next], [current, next]);
+  assert.equal(game.bodies.size, 1);
+  assert.equal(h.get('seed-input').value, seed);
+  assert.equal(game.state, 'playing');
+});
+
+test('seed confirmation survives help, changes the seed only on confirm, and blank input makes a shareable seed', async () => {
+  const h = await harness(),
+    game = h.api.getGame();
+  h.get('game').fire('keydown', { key: 'Enter' });
+  h.get('seed-input').value = '0';
+  h.get('seed-form').fire('submit');
+  h.get('help-button').fire('click');
+  h.get('primary-button').fire('click');
+  h.get('primary-button').fire('click');
+  assert.equal(game.seed, '0');
+  assert.equal(game.bodies.size, 0);
+  assert.equal(game.score, 0);
+  assert.equal(h.get('seed-input').disabled, false);
+  h.get('seed-input').value = '   ';
+  h.get('seed-form').fire('submit');
+  assert.ok(game.seed.length > 0);
+  assert.notEqual(game.seed, '0');
+  assert.equal(h.get('active-seed').textContent, game.seed);
+});
+
+test('seed controls cannot reset a game while a modal or intro is active', async () => {
+  const h = await harness({ skipIntro: false });
+  const game = h.api.getGame(),
+    seed = game.seed;
+  h.get('seed-input').value = 'blocked';
+  h.get('seed-form').fire('submit');
+  assert.equal(game.seed, seed);
+  h.get('intro-skip').fire('click');
+  h.get('pause-button').fire('click');
+  h.get('seed-form').fire('submit');
+  assert.equal(game.seed, seed);
+  assert.equal(game.state, 'paused');
+});
 
 test('cat rain, paws and title fade into play without accepting input during the transition', async () => {
   const h = await harness({ skipIntro: false });
