@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="ko" class="intro-running">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <meta name="theme-color" content="#f7f4ec" />
+    <meta
+      name="description"
+      content="고양이 10종을 합치는 수박게임. 같은 단계 2마리를 합쳐 점수를 얻고 최고 기록에 도전하세요."
+    />
+    <title>냥냥 드롭</title>
+    <script id="startup-guard">
+      // This guard must run before external styles/scripts and without imports.
+      (() => {
+        let state = 'pending',
+          shown = false;
+        function showFailure() {
+          if (state !== 'failed' || shown) {
+            return;
+          }
+          const panel = document.getElementById('startup-error');
+          if (!panel) {
+            return;
+          }
+          shown = true;
+          document.getElementById('intro').hidden = true;
+          document.getElementById('game-layout').inert = true;
+          document.documentElement.classList.remove('intro-running');
+          panel.hidden = false;
+          const retry = document.getElementById('startup-retry');
+          retry.onclick = () => location.reload();
+          retry.focus({ preventScroll: true });
+          document.removeEventListener('readystatechange', showFailure);
+        }
+        function fail() {
+          if (state !== 'pending') {
+            return;
+          }
+          state = 'failed';
+          window.clearTimeout(watchdog);
+          window.removeEventListener('error', scriptError, true);
+          showFailure();
+        }
+        function scriptError(event) {
+          if (
+            event.target?.tagName === 'SCRIPT' &&
+            event.target.hasAttribute('data-game-startup')
+          ) {
+            fail();
+          }
+        }
+        const watchdog = window.setTimeout(fail, 20000);
+        window.addEventListener('error', scriptError, true);
+        document.addEventListener('readystatechange', showFailure);
+        window.nyangStartup = {
+          get failed() {
+            return state === 'failed';
+          },
+          ready() {
+            if (state === 'failed') {
+              return false;
+            }
+            state = 'ready';
+            window.clearTimeout(watchdog);
+            window.removeEventListener('error', scriptError, true);
+            document.removeEventListener('readystatechange', showFailure);
+            return true;
+          },
+        };
+      })();
+    </script>
+    <link rel="icon" href="./assets/02_orange_tabby.png" />
+    <link rel="preload" as="image" href="./assets/nyang-drop-logo.png" />
+    <link rel="stylesheet" href="./style.css?v=17" />
+    <script defer data-game-startup src="./vendor/matter.min.js"></script>
+    <script type="module" data-game-startup src="./app.js?v=18"></script>
+  </head>
+  <body>
+    <div class="room-backdrop" aria-hidden="true"></div>
+    <svg class="svg-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14" /></symbol>
+        <symbol id="i-reset" viewBox="0 0 24 24"><path d="M4 10a8 8 0 1 1 .8 7M4 4v6h6" /></symbol>
+        <symbol id="i-sound" viewBox="0 0 24 24">
+          <path d="M11 5 6 9H3v6h3l5 4V5ZM15 8a6 6 0 0 1 0 8M18 5a10 10 0 0 1 0 14" />
+        </symbol>
+        <symbol id="i-muted" viewBox="0 0 24 24">
+          <path d="M11 5 6 9H3v6h3l5 4V5ZM16 9l5 6M21 9l-5 6" />
+        </symbol>
+        <symbol id="i-volume" viewBox="0 0 24 24">
+          <path d="M4 7h5m4 0h7M4 17h9m4 0h3" />
+          <circle cx="11" cy="7" r="2" />
+          <circle cx="15" cy="17" r="2" />
+        </symbol>
+        <symbol id="i-help" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M9.5 9a2.5 2.5 0 1 1 4 2c-1 .7-1.5 1-1.5 2M12 16h.01" />
+        </symbol>
+        <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M14 7l5 5-5 5" /></symbol>
+        <symbol id="i-crown" viewBox="0 0 24 24">
+          <path d="m3 6 4 4 5-6 5 6 4-4-2 12H5L3 6ZM6 21h12" />
+        </symbol>
+        <symbol id="i-paw" viewBox="0 0 24 24">
+          <path d="M7 15c-3 5 1 7 5 5 4 2 8 0 5-5-2-4-8-4-10 0Z" />
+          <ellipse cx="5" cy="9" rx="2" ry="3" />
+          <ellipse cx="10" cy="5" rx="2" ry="3" />
+          <ellipse cx="16" cy="5" rx="2" ry="3" />
+          <ellipse cx="21" cy="10" rx="2" ry="3" />
+        </symbol>
+        <symbol id="i-intro-paw" viewBox="0 0 48 52">
+          <ellipse cx="8" cy="23" rx="6" ry="8" transform="rotate(-28 8 23)" />
+          <ellipse cx="18" cy="11" rx="6" ry="8" transform="rotate(-10 18 11)" />
+          <ellipse cx="31" cy="11" rx="6" ry="8" transform="rotate(13 31 11)" />
+          <ellipse cx="41" cy="24" rx="6" ry="8" transform="rotate(30 41 24)" />
+          <path d="M12 34c4-4 5-10 12-10s9 6 13 11c6 8 0 16-8 13-3-1-6-1-9 0-9 3-14-6-8-14Z" />
+        </symbol>
+      </defs>
+    </svg>
+    <div
+      id="intro"
+      class="intro"
+      role="dialog"
+      aria-modal="true"
+      aria-label="냥냥 드롭 시작 애니메이션"
+    >
+      <canvas id="intro-canvas" aria-hidden="true"></canvas>
+      <div class="intro-veil" aria-hidden="true"></div>
+      <div class="intro-paws" aria-hidden="true">
+        <svg class="intro-paw" style="--step: 0; --x: -74px; --y: 112px; --turn: 24deg">
+          <use href="#i-intro-paw" />
+        </svg>
+        <svg class="intro-paw" style="--step: 1; --x: -12px; --y: 78px; --turn: 16deg">
+          <use href="#i-intro-paw" />
+        </svg>
+        <svg class="intro-paw" style="--step: 2; --x: -38px; --y: 24px; --turn: 28deg">
+          <use href="#i-intro-paw" />
+        </svg>
+        <svg class="intro-paw" style="--step: 3; --x: 28px; --y: -12px; --turn: 22deg">
+          <use href="#i-intro-paw" />
+        </svg>
+        <svg class="intro-paw" style="--step: 4; --x: 6px; --y: -67px; --turn: 30deg">
+          <use href="#i-intro-paw" />
+        </svg>
+        <svg class="intro-paw" style="--step: 5; --x: 74px; --y: -102px; --turn: 28deg">
+          <use href="#i-intro-paw" />
+        </svg>
+      </div>
+      <div class="intro-brand" aria-label="냥냥 드롭">
+        <img id="intro-logo" width="2172" height="724" alt="냥냥 드롭" hidden />
+        <span id="intro-logo-fallback"
+          >냥냥 드롭 <svg aria-hidden="true"><use href="#i-intro-paw" /></svg
+        ></span>
+      </div>
+      <button class="intro-skip" id="intro-skip" type="button">
+        건너뛰기 <span aria-hidden="true">→</span>
+      </button>
+    </div>
+    <main id="game-layout" class="game-layout intro-concealed" inert aria-label="냥냥 드롭">
+      <aside class="intro-column">
+        <div class="next-card paper-card">
+          <div class="card-label">다음 고양이 <span>NEXT</span></div>
+          <div class="next-cat-wrap">
+            <img id="next-image" src="./assets/01_gray_tabby.png" alt="다음 고양이" /><span
+              class="next-spark"
+              >✦</span
+            >
+          </div>
+          <div class="next-bottom">
+            <span id="next-name">회색 태비</span
+            ><span class="level-tag" id="next-level">Lv. 1</span>
+          </div>
+        </div>
+        <section class="instructions-card paper-card" aria-labelledby="instructions-title">
+          <h2 id="instructions-title" class="card-title">게임 안내</h2>
+          <ol class="instruction-list">
+            <li>
+              <strong>위치를 정하고 떨어뜨리기</strong>
+              <p>
+                <span class="desktop-tip">마우스를 움직여 클릭하세요.</span
+                ><span class="touch-tip">드래그하고 손을 떼세요.</span>
+              </p>
+            </li>
+            <li>
+              <strong>같은 단계끼리 합성</strong>
+              <p>2마리가 합쳐져 다음 단계가 됩니다.</p>
+            </li>
+          </ol>
+        </section>
+      </aside>
+
+      <section class="play-column" aria-label="냥냥 드롭 게임">
+        <div class="mobile-score paper-card">
+          <div><span>점수</span><b id="score-mobile">0</b></div>
+          <div><span>최고 기록</span><b id="best-mobile">0</b></div>
+          <div class="mobile-next">
+            <span class="mobile-next-meta"
+              ><span>다음</span><span class="level-tag" id="next-level-mobile">Lv. 1</span></span
+            ><span class="mobile-next-preview"
+              ><img id="next-mobile" src="./assets/01_gray_tabby.png" alt="다음 고양이"
+            /></span>
+          </div>
+        </div>
+        <div class="board-top">
+          <div class="toolbar">
+            <button class="icon-button" id="help-button" aria-label="게임 방법" title="게임 방법">
+              <svg><use href="#i-help" /></svg>
+            </button>
+            <button
+              class="icon-button"
+              id="mute-button"
+              aria-label="배경음·효과음 끄기"
+              title="배경음·효과음 끄기"
+              aria-pressed="false"
+            >
+              <svg><use href="#i-sound" /></svg>
+            </button>
+            <button
+              class="icon-button"
+              id="volume-button"
+              aria-label="볼륨 조절"
+              title="볼륨 조절"
+              aria-expanded="false"
+              aria-controls="sound-settings"
+            >
+              <svg><use href="#i-volume" /></svg>
+            </button>
+            <button
+              class="icon-button"
+              id="pause-button"
+              aria-label="일시정지"
+              title="일시정지"
+              disabled
+            >
+              <svg><use href="#i-pause" /></svg>
+            </button>
+            <button
+              class="icon-button"
+              id="restart-button"
+              aria-label="다시 시작"
+              title="다시 시작"
+              disabled
+            >
+              <svg><use href="#i-reset" /></svg>
+            </button>
+          </div>
+          <section
+            id="sound-settings"
+            class="sound-panel paper-card"
+            aria-labelledby="sound-title"
+            hidden
+          >
+            <div class="sound-heading">
+              <h2 id="sound-title">볼륨</h2>
+              <button
+                type="button"
+                class="sound-close"
+                id="sound-close"
+                aria-label="볼륨 조절 닫기"
+              >
+                ×
+              </button>
+            </div>
+            <div class="volume-row">
+              <label for="music-volume">배경음악</label
+              ><output id="music-volume-value" for="music-volume" aria-hidden="true">60%</output
+              ><input
+                id="music-volume"
+                type="range"
+                min="0"
+                max="100"
+                step="1"
+                value="60"
+                aria-valuetext="60%"
+              />
+            </div>
+            <div class="volume-row">
+              <label for="effects-volume">효과음</label
+              ><output id="effects-volume-value" for="effects-volume" aria-hidden="true">80%</output
+              ><input
+                id="effects-volume"
+                type="range"
+                min="0"
+                max="100"
+                step="1"
+                value="80"
+                aria-valuetext="80%"
+              />
+            </div>
+            <button type="button" class="sound-toggle" id="sound-toggle" aria-pressed="false">
+              전체 음소거
+            </button>
+          </section>
+        </div>
+        <div class="board" id="board">
+          <canvas
+            id="game"
+            width="440"
+            height="650"
+            tabindex="0"
+            aria-label="고양이 게임판. 방향키로 위치를 정하고 스페이스 또는 엔터로 떨어뜨리세요."
+          ></canvas>
+          <div class="danger-banner" id="danger-banner" hidden>
+            종료까지 <b id="danger-seconds">2.0</b>초
+          </div>
+          <div class="toast" id="toast" hidden aria-live="polite"></div>
+          <div class="overlay" id="overlay" hidden>
+            <div
+              class="modal"
+              id="modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="modal-title"
+            >
+              <div class="welcome-cats" id="welcome-cats">
+                <img src="./assets/01_gray_tabby.png" alt="회색 태비" /><img
+                  src="./assets/02_orange_tabby.png"
+                  alt="치즈 고양이"
+                /><img src="./assets/04_calico.png" alt="삼색 고양이" />
+              </div>
+              <p class="eyebrow" id="modal-eyebrow"></p>
+              <h2 id="modal-title"></h2>
+              <p id="modal-description"></p>
+              <div id="modal-extra"></div>
+              <button class="primary-button" id="primary-button" disabled>
+                <span></span><svg><use href="#i-arrow" /></svg>
+              </button>
+              <button class="text-button" id="secondary-button" hidden>돌아가기</button>
+              <p class="modal-footnote" id="modal-footnote" hidden></p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="collection-column">
+        <div class="score-card paper-card">
+          <div class="card-label">지금 점수 <span>SCORE</span></div>
+          <strong id="score">0</strong>
+          <div class="score-record">
+            <span
+              ><svg><use href="#i-crown" /></svg> 최고 기록</span
+            ><b id="best">0</b>
+          </div>
+        </div>
+        <section class="collection paper-card" aria-labelledby="collection-title">
+          <div class="collection-heading">
+            <h2 id="collection-title" class="card-title">고양이 도감</h2>
+            <span title="이번 판에서 생성한 단계"><b id="discovered-count">0</b> / 10</span>
+          </div>
+          <p class="collection-description">1단계부터 시계 방향으로</p>
+          <div class="collection-wheel">
+            <svg
+              id="collection-arrows"
+              class="collection-arrows"
+              viewBox="0 0 400 400"
+              aria-hidden="true"
+            ></svg>
+            <div class="collection-center" aria-hidden="true">
+              <strong>합성 순서</strong><span>작게 → 크게</span>
+            </div>
+            <ol
+              id="cat-collection"
+              aria-label="고양이 합성 순서: 위쪽 1단계부터 시계 방향으로 10단계까지"
+            ></ol>
+          </div>
+        </section>
+      </aside>
+    </main>
+    <div id="room-decor" class="room-decor intro-concealed" aria-hidden="true" inert>
+      <img
+        class="room-clock"
+        src="./assets/room/wall-clock.png"
+        width="1254"
+        height="1254"
+        alt=""
+        draggable="false"
+        decoding="async"
+        fetchpriority="low"
+      />
+      <div class="room-left-corner">
+        <img
+          class="room-tower"
+          src="./assets/room/cat-tower.png"
+          width="1024"
+          height="1536"
+          alt=""
+          draggable="false"
+          decoding="async"
+          fetchpriority="low"
+        />
+        <img
+          class="room-gray"
+          src="./assets/room/cat-gray.png"
+          width="1536"
+          height="1024"
+          alt=""
+          draggable="false"
+          decoding="async"
+          fetchpriority="low"
+        />
+        <img
+          class="room-sage-yarn"
+          src="./assets/room/yarn-sage.png"
+          width="1774"
+          height="887"
+          alt=""
+          draggable="false"
+          decoding="async"
+          fetchpriority="low"
+        />
+      </div>
+      <div class="room-right-corner">
+        <img
+          class="room-orange"
+          src="./assets/room/cat-orange.png"
+          width="1465"
+          height="1074"
+          alt=""
+          draggable="false"
+          decoding="async"
+          fetchpriority="low"
+        />
+        <img
+          class="room-calico"
+          src="./assets/room/cat-calico.png"
+          width="1402"
+          height="1122"
+          alt=""
+          draggable="false"
+          decoding="async"
+          fetchpriority="low"
+        />
+        <img
+          class="room-coral-yarn"
+          src="./assets/room/yarn-terracotta.png"
+          width="1774"
+          height="887"
+          alt=""
+          draggable="false"
+          decoding="async"
+          fetchpriority="low"
+        />
+      </div>
+    </div>
+    <section
+      id="startup-error"
+      hidden
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="startup-title"
+      style="
+        position: fixed;
+        inset: 0;
+        z-index: 200;
+        padding: 24px;
+        background: #f7f4ec;
+        color: #49483f;
+        font: 14px/1.8 sans-serif;
+        overflow: auto;
+      "
+    >
+      <div
+        style="
+          max-width: 340px;
+          margin: 18vh auto 0;
+          padding: 28px 24px;
+          background: #fffdf4;
+          border: 1px solid #ddceb4;
+          border-radius: 4px;
+          text-align: center;
+        "
+      >
+        <h2 id="startup-title" style="font-size: 20px; margin: 0 0 12px">
+          게임을 불러오지 못했습니다
+        </h2>
+        <p style="margin: 0 0 20px">연결을 확인한 뒤 다시 불러와 주세요.</p>
+        <button
+          id="startup-retry"
+          type="button"
+          style="
+            padding: 12px 20px;
+            border: 0;
+            border-radius: 6px;
+            background: #879576;
+            color: white;
+            font: inherit;
+            cursor: pointer;
+          "
+        >
+          다시 불러오기
+        </button>
+      </div>
+    </section>
+    <div class="sr-only" id="announcement" role="status" aria-live="polite"></div>
+    <noscript
+      ><style>
+        .intro {
+          display: none;
+        }
+        .intro-running {
+          overflow: auto;
+        }
+        .intro-concealed {
+          visibility: visible !important;
+        }</style
+      >게임을 플레이하려면 브라우저의 JavaScript를 켜주세요.</noscript
+    >
+  </body>
+</html>

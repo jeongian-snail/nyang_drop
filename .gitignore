@@ -1,0 +1,43 @@
+# Dependencies and tool caches
+node_modules/
+.npm/
+.cache/
+.eslintcache
+.stylelintcache
+
+# Generated reports and temporary build output
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+build/
+tmp/
+temp/
+artifacts/
+*.log
+*.tsbuildinfo
+*.tar.gz
+
+# Local credentials and hosting/editor state
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.local
+.openai/
+.codex/
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# OS and editor temporary files
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~
+
+# dist/ contains the authored static app, not disposable build output.
+# Keep dist/, its assets, and package-lock.json under version control.

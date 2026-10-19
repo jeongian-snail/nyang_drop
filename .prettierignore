@@ -1,0 +1,4 @@
+# Preserve vendored files, generated collision data, and npm's lockfile format.
+dist/vendor/
+dist/cat-outlines.js
+package-lock.json

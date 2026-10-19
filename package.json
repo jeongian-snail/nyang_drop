@@ -1,0 +1,33 @@
+{
+  "name": "nyang-drop",
+  "private": true,
+  "version": "1.0.0",
+  "description": "고양이 얼굴을 합치는 브라우저 수박게임 냥냥 드롭",
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
+    "lint:js": "eslint . --max-warnings=0",
+    "lint:css": "stylelint \"dist/**/*.css\" --max-warnings=0",
+    "lint": "npm run lint:js && npm run lint:css",
+    "lint:fix": "eslint . --fix --max-warnings=0 && stylelint \"dist/**/*.css\" --fix --max-warnings=0",
+    "test": "node --test tests/*.test.mjs",
+    "check": "npm run format:check && npm run lint && npm test"
+  },
+  "dependencies": {
+    "matter-js": "0.20.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "eslint": "10.13.0",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-html": "8.2.1",
+    "globals": "17.13.0",
+    "prettier": "3.9.10",
+    "stylelint": "17.16.0",
+    "stylelint-config-recommended": "18.0.0"
+  }
+}

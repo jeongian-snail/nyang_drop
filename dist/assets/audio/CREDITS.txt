@@ -1,0 +1,16 @@
+Cat voice recordings: "Cat Purr & Meow" by Kerzoven (2022)
+Source: https://opengameart.org/content/cat-purr-meow
+License: CC0 1.0 — https://creativecommons.org/publicdomain/zero/1.0/
+
+meow-1.wav: cat_mewfood.wav
+meow-2.wav: cat_mewpurr.wav
+meow-3.wav: cat_mewpurr2.wav
+meow-4.wav: cat_softmew.wav
+
+Edits: trimmed calls, gentle high/low-pass filtering, fades, peak balancing,
+and resampling to 32 kHz mono PCM. Small playback-rate variations are applied
+in the game. The original recordings are not generated voices.
+
+Background music: original 16-bar composition and Web Audio arrangement
+created for Nyang Nyang Drop. Plucked keys, soft bass and brushed percussion.
+Score and synthesis are contained in ../../audio.js. No external music samples.

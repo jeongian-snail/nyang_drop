@@ -1,0 +1,193 @@
+/* Opening: cat pile, paw trail, animated wordmark, then direct play. */
+.intro-running {
+  overflow: hidden;
+}
+.intro-concealed {
+  visibility: hidden !important;
+}
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  overflow: hidden;
+  background: #f7f4ec;
+  opacity: 1;
+  transition: opacity 1.6s ease-in-out;
+  touch-action: none;
+}
+#intro-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  filter: blur(0);
+  transition: filter 0.7s ease;
+}
+.intro-veil {
+  position: absolute;
+  inset: 0;
+  background: #f7f4ec;
+  opacity: 0;
+  transition: opacity 0.7s ease;
+}
+.intro.is-paws .intro-veil {
+  opacity: 0.58;
+}
+.intro-paws {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.intro-paw {
+  position: absolute;
+  left: calc(50% + var(--x));
+  top: calc(50% + var(--y));
+  width: 40px;
+  height: 44px;
+  fill: #879576;
+  stroke: none;
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(var(--turn));
+}
+.intro.is-paws .intro-paw {
+  animation: paw-step 0.3s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  animation-delay: calc(0.22s + var(--step) * 0.15s);
+}
+.intro-brand {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  filter: blur(0);
+  transition: filter 1.6s ease-in-out;
+}
+.intro-brand img {
+  display: block;
+  width: min(90vw, 680px);
+  height: auto;
+  max-height: 38svh;
+  object-fit: contain;
+}
+.intro-brand img,
+#intro-logo-fallback {
+  --logo-outline: clamp(4px, 0.8vw, 8px);
+  filter: drop-shadow(var(--logo-outline) 0 0 #fff)
+    drop-shadow(calc(-1 * var(--logo-outline)) 0 0 #fff) drop-shadow(0 var(--logo-outline) 0 #fff)
+    drop-shadow(0 calc(-1 * var(--logo-outline)) 0 #fff);
+}
+#intro-logo-fallback {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: clamp(36px, 9vw, 76px);
+  font-weight: 800;
+  letter-spacing: -2px;
+  color: #49483f;
+  white-space: nowrap;
+}
+#intro-logo-fallback svg {
+  width: 0.6em;
+  height: 0.65em;
+  fill: #879576;
+  stroke: none;
+}
+.intro.is-title .intro-veil {
+  opacity: 0.6;
+}
+.intro.is-title #intro-canvas {
+  filter: blur(1px);
+}
+.intro.is-title .intro-paws {
+  opacity: 0;
+}
+.intro.is-title .intro-brand {
+  animation: brand-drop 0.65s ease-out both;
+}
+.intro-skip {
+  position: absolute;
+  right: max(18px, env(safe-area-inset-right));
+  top: max(18px, env(safe-area-inset-top));
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 10px 15px;
+  color: #635f53;
+  background: #fffdf4ef;
+  border: 1px solid #ddceb4;
+  border-radius: 4px;
+  font-size: 11px;
+  box-shadow: 0 2px 5px #6d543411;
+}
+.intro.is-leaving {
+  opacity: 0;
+}
+.intro.is-leaving #intro-canvas {
+  filter: blur(12px);
+  transition: filter 1.6s ease-in-out;
+}
+.intro.is-leaving .intro-brand {
+  filter: blur(4px);
+}
+.intro.is-reduced #intro-canvas {
+  filter: none;
+  transition: none;
+}
+.intro.is-reduced .intro-paw {
+  animation: none;
+  opacity: 1;
+}
+.intro.is-reduced .intro-brand {
+  animation: none;
+  opacity: 1;
+  transform: none;
+}
+@keyframes brand-drop {
+  0% {
+    opacity: 0;
+    transform: translateY(-38px) scale(0.9) rotate(-2deg);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(6px) scale(1.025) rotate(0.5deg);
+  }
+  82% {
+    opacity: 1;
+    transform: translateY(-3px) scale(0.995) rotate(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(0);
+  }
+}
+@keyframes paw-step {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--turn)) scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--turn)) scale(1);
+  }
+}
+@media (min-width: 821px) {
+  .intro-paw {
+    width: 46px;
+    height: 50px;
+    left: calc(50% + var(--x) * 1.25);
+    top: calc(50% + var(--y) * 1.25);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .intro.is-paws .intro-paw {
+    opacity: 1;
+  }
+  .intro.is-title .intro-brand {
+    opacity: 1;
+    transform: none;
+  }
+}

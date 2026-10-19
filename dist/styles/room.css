@@ -1,0 +1,200 @@
+/* The room is a separate decorative layer; the game keeps its own coordinates. */
+body {
+  min-height: 100svh;
+  isolation: isolate;
+  --room-game-span: min(
+    calc(100vw - 40px),
+    calc(528px + min(600px, calc((100svh - 110px) * 440 / 650)))
+  );
+  --room-edge-space: calc((100vw - var(--room-game-span)) / 2);
+  --room-tower-height: min(560px, 52svh);
+}
+.room-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: #f7f4ec url('../assets/room/background.png') center bottom / cover no-repeat;
+}
+.game-layout {
+  position: relative;
+  z-index: 1;
+}
+.collection {
+  background: #fffdf7;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+}
+
+.room-decor {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  user-select: none;
+  overflow: hidden;
+}
+.room-decor img {
+  position: absolute;
+  display: block;
+  height: auto;
+  object-fit: contain;
+  pointer-events: none;
+}
+.room-clock {
+  top: clamp(20px, 5svh, 64px);
+  right: 24px;
+  width: max(0px, min(204px, calc((var(--room-edge-space) - 40px) * 0.85)));
+}
+.room-left-corner {
+  position: absolute;
+  left: 12px;
+  bottom: 2svh;
+  width: max(0px, min(560px, calc(var(--room-edge-space) + 150px)));
+  height: var(--room-tower-height);
+}
+.room-tower {
+  left: 0;
+  bottom: 20px;
+  width: min(70%, calc(var(--room-tower-height) * 2 / 3));
+}
+.room-gray {
+  left: 46%;
+  bottom: 8px;
+  width: min(240px, 48%);
+}
+.room-sage-yarn {
+  left: 36%;
+  bottom: -4px;
+  width: 58%;
+}
+.room-right-corner {
+  position: absolute;
+  right: 12px;
+  bottom: 2svh;
+  width: max(0px, min(640px, 32vw, calc(var(--room-edge-space) + 300px)));
+  aspect-ratio: 2.6;
+}
+.room-orange {
+  left: 0;
+  bottom: 8px;
+  width: 44%;
+}
+.room-calico {
+  right: 0;
+  bottom: 8px;
+  width: 44%;
+}
+.room-coral-yarn {
+  left: 30%;
+  bottom: -4px;
+  width: 55%;
+}
+/* Short desktops keep the enlarged cats below the collection card. */
+@media (min-width: 1101px) and (max-height: 820px) {
+  .room-right-corner {
+    width: max(
+      0px,
+      min(520px, 30vw, max(calc(var(--room-edge-space) - 24px), calc((100svh - 650px) * 2.6)))
+    );
+  }
+}
+@media (min-width: 1101px) and (max-height: 650px) {
+  .room-left-corner {
+    width: max(0px, min(240px, calc(var(--room-edge-space) - 24px)));
+    height: min(280px, 60svh);
+  }
+  .room-tower {
+    width: 70%;
+  }
+}
+/* Narrow layouts reserve a small floor area after the UI for the room props. */
+@media (max-width: 1100px) {
+  .room-clock {
+    display: none;
+  }
+  .room-decor {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    max-width: 800px;
+    height: 230px;
+    margin: 0 auto;
+  }
+  .room-left-corner {
+    left: 12px;
+    bottom: 6px;
+    width: 250px;
+    height: 210px;
+  }
+  .room-tower {
+    left: 0;
+    bottom: 14px;
+    width: 132px;
+  }
+  .room-gray {
+    left: 104px;
+    bottom: 6px;
+    width: 96px;
+  }
+  .room-sage-yarn {
+    left: 62px;
+    bottom: -4px;
+    width: 138px;
+  }
+  .room-right-corner {
+    right: 12px;
+    bottom: 10px;
+    width: 245px;
+  }
+}
+@media (max-width: 600px) {
+  .collection {
+    padding: 17px 15px;
+    border-radius: 16px;
+  }
+  .mobile-score {
+    background: #fffdf7e8;
+    border-radius: 12px;
+    padding-top: 7px;
+  }
+  .room-decor {
+    height: 180px;
+    margin-top: 4px;
+  }
+  .room-left-corner {
+    left: 6px;
+    bottom: 6px;
+    width: 170px;
+    height: 155px;
+  }
+  .room-tower {
+    bottom: 12px;
+    width: 92px;
+  }
+  .room-gray {
+    left: 63px;
+    bottom: 4px;
+    width: 70px;
+  }
+  .room-sage-yarn {
+    left: 43px;
+    bottom: -4px;
+    width: 100px;
+  }
+  .room-right-corner {
+    right: 6px;
+    bottom: 10px;
+    width: 160px;
+  }
+}
+@media (max-width: 360px) {
+  .room-gray,
+  .room-sage-yarn {
+    display: none;
+  }
+  .room-right-corner {
+    width: 150px;
+  }
+}
