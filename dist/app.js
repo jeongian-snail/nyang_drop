@@ -457,10 +457,6 @@ function drawBoard() {
   ctx.lineTo(412, RULES.line);
   ctx.stroke();
   ctx.restore();
-  ctx.font = '9px "Noto Sans KR", sans-serif';
-  ctx.fillStyle = danger ? '#a34d2e' : '#9d815b';
-  ctx.textAlign = 'right';
-  ctx.fillText('종료선', 406, RULES.line + 17);
   if (!game) {
     return;
   }
