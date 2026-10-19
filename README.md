@@ -67,4 +67,3 @@ GitHub Actions에서 push와 pull request마다 `npm run check`를 실행합니�
 - Matter.js: `dist/vendor/MATTER-LICENSE.txt`
 - 고양이 효과음 출처: `dist/assets/audio/CREDITS.txt`
 
-GitHub에 커밋하는 것만으로 현재 공개 사이트가 재배포되지는 않습니다.
