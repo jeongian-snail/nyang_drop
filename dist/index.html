@@ -71,9 +71,9 @@
     </script>
     <link rel="icon" href="./assets/02_orange_tabby.png" />
     <link rel="preload" as="image" href="./assets/nyang-drop-logo.png" />
-    <link rel="stylesheet" href="./style.css?v=21" />
+    <link rel="stylesheet" href="./style.css?v=22" />
     <script defer data-game-startup src="./vendor/matter.min.js"></script>
-    <script type="module" data-game-startup src="./app.js?v=22"></script>
+    <script type="module" data-game-startup src="./app.js?v=23"></script>
   </head>
   <body>
     <div class="room-backdrop" aria-hidden="true"></div>
@@ -196,22 +196,6 @@
           <div><span>점수</span><b id="score-mobile">0</b></div>
           <div><span>최고 기록</span><b id="best-mobile">0</b></div>
         </div>
-        <form id="seed-form" class="seed-form paper-card" aria-label="게임 시드 설정">
-          <div class="seed-controls">
-            <label for="seed-input">시드</label>
-            <input
-              id="seed-input"
-              type="text"
-              maxlength="64"
-              placeholder="비워 두면 랜덤"
-              autocomplete="off"
-              autocapitalize="off"
-              spellcheck="false"
-              disabled
-            />
-            <button id="seed-apply" type="submit" disabled>적용</button>
-          </div>
-        </form>
         <section
           id="next-preview-mobile"
           class="next-preview-mobile"
@@ -230,15 +214,65 @@
             <button class="icon-button" id="help-button" aria-label="게임 방법" title="게임 방법">
               <svg><use href="#i-help" /></svg>
             </button>
-            <button
-              class="icon-button"
-              id="mute-button"
-              aria-label="배경음·효과음 끄기"
-              title="배경음·효과음 끄기"
-              aria-pressed="false"
-            >
-              <svg><use href="#i-sound" /></svg>
-            </button>
+            <div class="volume-control" id="volume-control">
+              <button
+                class="icon-button"
+                id="volume-button"
+                aria-label="볼륨 조절"
+                title="볼륨 조절"
+                aria-expanded="false"
+                aria-controls="volume-panel"
+              >
+                <svg><use href="#i-sound" /></svg>
+              </button>
+              <section
+                id="volume-panel"
+                class="volume-panel paper-card"
+                aria-labelledby="volume-title"
+                hidden
+              >
+                <div class="settings-heading">
+                  <h2 id="volume-title">볼륨</h2>
+                  <button
+                    type="button"
+                    class="settings-close"
+                    id="volume-close"
+                    aria-label="볼륨 조절 닫기"
+                  >
+                    ×
+                  </button>
+                </div>
+                <div class="volume-row">
+                  <label for="music-volume">배경음악</label
+                  ><output id="music-volume-value" for="music-volume" aria-hidden="true">60%</output
+                  ><input
+                    id="music-volume"
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value="60"
+                    aria-valuetext="60%"
+                  />
+                </div>
+                <div class="volume-row">
+                  <label for="effects-volume">효과음</label
+                  ><output id="effects-volume-value" for="effects-volume" aria-hidden="true">80%</output
+                  ><input
+                    id="effects-volume"
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value="80"
+                    aria-valuetext="80%"
+                  />
+                </div>
+                <button type="button" class="sound-toggle" id="sound-toggle" aria-pressed="false">
+                  전체 음소거
+                </button>
+              </section>
+            </div>
             <button
               class="icon-button"
               id="settings-button"
@@ -289,35 +323,27 @@
               <span>다음 고양이 미리보기</span>
               <input id="next-preview-toggle" type="checkbox" role="switch" />
             </label>
-            <div class="volume-row">
-              <label for="music-volume">배경음악</label
-              ><output id="music-volume-value" for="music-volume" aria-hidden="true">60%</output
-              ><input
-                id="music-volume"
-                type="range"
-                min="0"
-                max="100"
-                step="1"
-                value="60"
-                aria-valuetext="60%"
-              />
-            </div>
-            <div class="volume-row">
-              <label for="effects-volume">효과음</label
-              ><output id="effects-volume-value" for="effects-volume" aria-hidden="true">80%</output
-              ><input
-                id="effects-volume"
-                type="range"
-                min="0"
-                max="100"
-                step="1"
-                value="80"
-                aria-valuetext="80%"
-              />
-            </div>
-            <button type="button" class="sound-toggle" id="sound-toggle" aria-pressed="false">
-              전체 음소거
-            </button>
+            <label class="preview-setting hitbox-setting" for="hitbox-toggle">
+              <span>고양이 히트박스 표시</span>
+              <input id="hitbox-toggle" type="checkbox" role="switch" />
+            </label>
+            <p class="hitbox-key">실선: 물리 충돌 · 점선: 합성 외곽선</p>
+            <form id="seed-form" class="seed-form" aria-label="게임 시드 설정">
+              <div class="seed-controls">
+                <label for="seed-input">시드</label>
+                <input
+                  id="seed-input"
+                  type="text"
+                  maxlength="64"
+                  placeholder="비워 두면 랜덤"
+                  autocomplete="off"
+                  autocapitalize="off"
+                  spellcheck="false"
+                  disabled
+                />
+                <button id="seed-apply" type="submit" disabled>적용</button>
+              </div>
+            </form>
           </section>
         </div>
         <div class="board" id="board">

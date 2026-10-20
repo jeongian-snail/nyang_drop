@@ -11,7 +11,7 @@
   min-width: 0;
 }
 .game-layout {
-  --board-width: min(600px, max(240px, calc((100svh - 230px) * 440 / 650)));
+  --board-width: min(600px, max(240px, calc((100svh - 150px) * 440 / 650)));
 }
 .paper-card {
   position: relative;
@@ -117,10 +117,10 @@
 }
 @media (max-width: 820px) {
   .game-layout {
-    --board-width: min(600px, max(240px, calc((100svh - 292px) * 440 / 650)));
+    --board-width: min(600px, max(240px, calc((100svh - 212px) * 440 / 650)));
   }
   .game-layout.preview-enabled {
-    --board-width: min(600px, max(240px, calc((100svh - 366px) * 440 / 650)));
+    --board-width: min(600px, max(240px, calc((100svh - 286px) * 440 / 650)));
   }
   .next-preview-desktop {
     display: none;
@@ -205,7 +205,8 @@
   position: relative;
   z-index: 6;
 }
-.settings-panel.paper-card {
+.settings-panel.paper-card,
+.volume-panel.paper-card {
   position: absolute;
   top: calc(100% + 7px);
   right: 0;
@@ -213,6 +214,24 @@
   width: min(268px, 100%);
   padding: 25px 16px 12px;
   box-shadow: 0 8px 24px #65583b25;
+  max-height: min(420px, calc(100svh - 160px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.volume-control {
+  display: flex;
+  align-items: center;
+}
+.hitbox-setting {
+  border-bottom: 0;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+.hitbox-key {
+  margin: 2px 0 14px;
+  font-size: 10px;
+  line-height: 1.6;
+  color: #776e5e;
 }
 .settings-heading {
   display: flex;
@@ -323,11 +342,9 @@
   border-color: #a2ad92;
 }
 .seed-form {
-  margin-bottom: 10px;
-  padding: 27px 14px 14px;
-  border: 1px solid var(--card-border);
-  border-radius: 8px;
-  background: var(--card-background);
+  margin: 0;
+  padding-top: 14px;
+  border-top: 1px solid #ece6da;
   color: var(--ink);
 }
 .seed-controls {

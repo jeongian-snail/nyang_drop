@@ -8,6 +8,7 @@ import { createIntro } from '../dist/intro.js';
 import { createGameAudio } from '../dist/audio.js';
 import { CAT_OUTLINES } from '../dist/cat-outlines.js';
 import { createSeed, normalizeSeed } from '../dist/seed.js';
+import { drawCatHitbox } from '../dist/hitboxes.js';
 
 // DOM adapters exercise production event handlers; they do not replace browser visual/device QA.
 async function harness({
@@ -93,7 +94,25 @@ async function harness({
       return (this.nodes[selector] ??= new Element());
     }
     querySelectorAll() {
-      return [get('primary-button'), get('secondary-button')];
+      const ids = {
+        modal: ['primary-button', 'secondary-button'],
+        'game-settings': [
+          'settings-close',
+          'next-preview-toggle',
+          'hitbox-toggle',
+          'seed-input',
+          'seed-apply',
+        ],
+        'volume-panel': ['volume-close', 'music-volume', 'effects-volume', 'sound-toggle'],
+        'volume-control': [
+          'volume-button',
+          'volume-close',
+          'music-volume',
+          'effects-volume',
+          'sound-toggle',
+        ],
+      };
+      return (ids[this.id] || []).map(get);
     }
     setAttribute(name, value) {
       this.attributes[name] = value;
@@ -188,6 +207,7 @@ async function harness({
     CAT_OUTLINES,
     createSeed,
     normalizeSeed,
+    drawCatHitbox,
     document,
     window,
     createGameAudio: (options) =>
@@ -268,6 +288,7 @@ async function harness({
     frameIntro: (time) => introFrame?.(time),
     expireIntro: () => expire(10000),
     expireLoad: () => expire(15000),
+    expireVolumeClose: () => expire(180),
     finishPendingImages: () => pendingImages.forEach((finish) => finish()),
     reloaded: () => reloaded,
   };
@@ -694,15 +715,16 @@ test('missing asset produces a usable retry state rather than starting invisibly
   assert.equal(h.errors.length, 1);
 });
 
-test('volume controls preserve separate values and do not pause or drop cats', async () => {
+test('speaker hover and touch open volume without changing the game or mute state', async () => {
   const stored = { 'nyang-drop.music-volume': '23', 'nyang-drop.effects-volume': '67' };
   const h = await harness({ stored });
   const game = h.api.getGame();
-  assert.equal(h.get('game-settings').hidden, true);
-  h.get('settings-button').fire('click');
-  assert.equal(h.get('game-settings').hidden, false);
-  assert.equal(h.get('settings-button').attributes['aria-expanded'], 'true');
-  assert.equal(h.document.activeElement, h.get('next-preview-toggle'));
+  const before = [game.seed, game.current, game.next, game.time, game.state];
+  assert.equal(h.get('volume-panel').hidden, true);
+  h.get('volume-control').fire('pointerenter', { pointerType: 'mouse' });
+  assert.equal(h.get('volume-panel').hidden, false);
+  assert.equal(h.get('volume-button').attributes['aria-expanded'], 'true');
+  assert.equal(stored['nyang-drop.muted'], undefined);
   assert.equal(h.get('music-volume-value').textContent, '23%');
   assert.equal(h.get('effects-volume-value').textContent, '67%');
   h.get('music-volume').fire('input', { target: { value: '12' } });
@@ -711,21 +733,125 @@ test('volume controls preserve separate values and do not pause or drop cats', a
   assert.equal(stored['nyang-drop.effects-volume'], '0');
   assert.equal(h.get('music-volume').attributes['aria-valuetext'], '12%');
   h.get('sound-toggle').fire('click');
-  assert.equal(h.get('mute-button').attributes['aria-pressed'], 'true');
+  assert.equal(h.get('volume-button').attributes['aria-label'], '볼륨 조절 · 음소거 중');
   h.get('sound-toggle').fire('click');
-  assert.equal(h.get('mute-button').attributes['aria-pressed'], 'false');
-  const escape = h.get('game-settings').fire('keydown', { key: 'Escape' });
+  assert.equal(h.get('volume-button').attributes['aria-label'], '볼륨 조절');
+  h.get('volume-control').fire('pointerleave');
+  h.expireVolumeClose();
+  assert.equal(h.get('volume-panel').hidden, true);
+  h.get('volume-button').fire('click');
+  assert.equal(h.get('volume-panel').hidden, false);
+  assert.equal(h.document.activeElement, h.get('music-volume'));
+  const escape = h.get('volume-control').fire('keydown', { key: 'Escape' });
   h.document.fire('keydown', escape);
-  assert.equal(h.get('game-settings').hidden, true);
-  assert.equal(h.document.activeElement, h.get('settings-button'));
-  assert.equal(game.state, 'playing');
+  assert.equal(h.get('volume-panel').hidden, true);
+  assert.equal(h.document.activeElement, h.get('volume-button'));
+  assert.deepEqual([game.seed, game.current, game.next, game.time, game.state], before);
   assert.equal(game.bodies.size, 0);
-  h.get('settings-button').fire('click');
+  h.get('volume-button').fire('click');
   h.document.fire('pointerdown', { target: h.get('game') });
-  assert.equal(h.get('game-settings').hidden, true);
+  assert.equal(h.get('volume-panel').hidden, true);
   const reloaded = await harness({ stored });
   assert.equal(reloaded.get('music-volume-value').textContent, '12%');
   assert.equal(reloaded.get('effects-volume-value').textContent, '0%');
+});
+
+test('moving into volume controls cancels hover dismissal and focused sliders stay open', async () => {
+  const h = await harness();
+  h.get('volume-control').fire('pointerenter', { pointerType: 'touch' });
+  assert.equal(h.get('volume-panel').hidden, true);
+  h.get('volume-control').fire('pointerenter', { pointerType: 'mouse' });
+  h.get('volume-control').fire('pointerleave');
+  h.get('volume-control').fire('pointerenter', { pointerType: 'mouse' });
+  assert.equal(h.expireVolumeClose(), false);
+  assert.equal(h.get('volume-panel').hidden, false);
+  h.get('volume-button').fire('click');
+  h.get('volume-control').fire('pointerleave');
+  h.expireVolumeClose();
+  assert.equal(h.get('volume-panel').hidden, false);
+  h.get('volume-control').fire('focusout', { relatedTarget: h.get('effects-volume') });
+  assert.equal(h.get('volume-panel').hidden, false);
+  h.get('volume-control').fire('focusout', { relatedTarget: h.get('settings-button') });
+  assert.equal(h.get('volume-panel').hidden, true);
+});
+
+test('settings and volume are exclusive and modal focus stays in the front panel', async () => {
+  const h = await harness();
+  h.get('help-button').fire('click');
+  h.get('settings-button').fire('click');
+  assert.equal(h.get('game-settings').hidden, false);
+  const tab = h.document.fire('keydown', { key: 'Tab' });
+  assert.notEqual(tab.defaultPrevented, true);
+  h.get('seed-apply').disabled = false;
+  h.get('seed-apply').focus();
+  h.document.fire('keydown', { key: 'Tab' });
+  assert.equal(h.document.activeElement, h.get('settings-close'));
+  h.get('volume-button').fire('click');
+  assert.equal(h.get('game-settings').hidden, true);
+  assert.equal(h.get('volume-panel').hidden, false);
+  h.get('sound-toggle').focus();
+  h.document.fire('keydown', { key: 'Tab' });
+  assert.equal(h.document.activeElement, h.get('volume-close'));
+  const escape = h.get('volume-control').fire('keydown', { key: 'Escape' });
+  h.document.fire('keydown', escape);
+  assert.equal(h.api.modal(), 'help');
+  h.get('primary-button').fire('click');
+  assert.equal(h.api.getGame().state, 'playing');
+  h.get('volume-button').fire('click');
+  h.get('settings-button').fire('click');
+  assert.equal(h.get('volume-panel').hidden, true);
+  assert.equal(h.get('game-settings').hidden, false);
+});
+
+test('hitbox preference survives reloads and never changes the seeded game', async () => {
+  const stored = {};
+  const h = await harness({ stored });
+  const game = h.api.getGame();
+  game.drop();
+  const snapshot = () => [
+    game.seed,
+    game.current,
+    game.next,
+    game.time,
+    game.score,
+    game.state,
+    ...[...game.bodies.values()].flatMap((body) => [body.id, body.position.x, body.position.y]),
+  ];
+  const before = snapshot();
+  assert.equal(h.get('hitbox-toggle').checked, false);
+  h.get('hitbox-toggle').fire('change', { target: { checked: true } });
+  assert.equal(stored['nyang-drop.hitboxes'], 'true');
+  assert.deepEqual(snapshot(), before);
+  const reloaded = await harness({ stored });
+  assert.equal(reloaded.get('hitbox-toggle').checked, true);
+  h.get('hitbox-toggle').fire('change', { target: { checked: false } });
+  assert.deepEqual(snapshot(), before);
+  const hiddenAgain = await harness({ stored });
+  assert.equal(hiddenAgain.get('hitbox-toggle').checked, false);
+  const blocked = await harness();
+  blocked.get('hitbox-toggle').fire('change', { target: { checked: true } });
+  assert.equal(blocked.get('hitbox-toggle').checked, true);
+  assert.equal(blocked.errors.length, 0);
+});
+
+test('applying the seed from settings closes the panel and resets only on confirmation', async () => {
+  const h = await harness();
+  h.get('settings-button').fire('click');
+  h.get('seed-input').value = 'settings-seed';
+  h.get('seed-form').fire('submit');
+  assert.equal(h.api.getGame().seed, 'settings-seed');
+  assert.equal(h.get('game-settings').hidden, true);
+  h.api.getGame().drop();
+  h.get('settings-button').fire('click');
+  h.get('seed-input').value = 'replacement';
+  h.get('seed-form').fire('submit');
+  assert.equal(h.get('game-settings').hidden, true);
+  assert.equal(h.api.modal(), 'restart');
+  assert.equal(h.api.getGame().seed, 'settings-seed');
+  h.get('secondary-button').fire('click');
+  assert.equal(h.api.getGame().seed, 'settings-seed');
+  assert.equal(h.get('seed-input').value, 'settings-seed');
+  assert.equal(h.api.getGame().bodies.size, 1);
 });
 
 test('next preview defaults off and remembers both on and off across visits', async () => {
@@ -816,4 +942,17 @@ test('settings markup labels the switch and keeps preview hidden before startup'
   for (const suffix of ['desktop', 'mobile']) {
     assert.match(html, new RegExp(`id="next-preview-${suffix}"[^>]*\\bhidden`));
   }
+});
+
+test('seed and hitbox controls belong to settings while volume belongs to the speaker', async () => {
+  const html = await readFile(new URL('../dist/index.html', import.meta.url), 'utf8');
+  const settings = /id="game-settings"[\s\S]*?<\/section>/.exec(html)[0];
+  const volume = /id="volume-panel"[\s\S]*?<\/section>/.exec(html)[0];
+  assert.equal((html.match(/id="seed-form"/g) || []).length, 1);
+  assert.match(settings, /id="seed-form"/);
+  assert.match(settings, /id="hitbox-toggle"[^>]*type="checkbox"[^>]*role="switch"/);
+  assert.doesNotMatch(settings, /id="music-volume"|id="effects-volume"/);
+  assert.match(volume, /id="music-volume"/);
+  assert.match(volume, /id="effects-volume"/);
+  assert.doesNotMatch(volume, /id="seed-input"/);
 });

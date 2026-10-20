@@ -107,6 +107,10 @@ function contains(point, polygon) {
   return inside;
 }
 
+export function getCatOutlinePoints(body) {
+  return geometry(body).points;
+}
+
 export function visibleCatsTouch(a, b) {
   const outlineA = CAT_OUTLINES[a.cat.level],
     outlineB = CAT_OUTLINES[b.cat.level];

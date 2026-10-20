@@ -3,6 +3,7 @@ import { createSeed, normalizeSeed } from './seed.js';
 import { createIntro } from './intro.js?v=3';
 import { createGameAudio } from './audio.js?v=3';
 import { CAT_OUTLINES } from './cat-outlines.js';
+import { drawCatHitbox } from './hitboxes.js';
 
 if (window.nyangStartup?.failed) {
   throw new Error('Game startup failed; reload to retry');
@@ -44,6 +45,8 @@ function syncBest(candidate = 0) {
 }
 let muted = storage.get('nyang-drop.muted', 'false') === 'true';
 let showNextPreview = storage.get('nyang-drop.next-preview', 'false') === 'true';
+let showHitboxes = storage.get('nyang-drop.hitboxes', 'false') === 'true';
+let volumeCloseTimer = null;
 const savedVolume = (key, fallback) => {
   const value = Number(storage.get(key, fallback));
   return Number.isFinite(value) ? clamp(Math.round(value), 0, 100) : fallback;
@@ -119,10 +122,10 @@ function unlockAudio() {
   audio.unlock();
 }
 function updateMute() {
-  $('mute-button').setAttribute('aria-pressed', String(muted));
-  $('mute-button').setAttribute('aria-label', muted ? '배경음·효과음 켜기' : '배경음·효과음 끄기');
-  $('mute-button').title = muted ? '배경음·효과음 켜기' : '배경음·효과음 끄기';
-  $('mute-button')
+  const label = muted ? '볼륨 조절 · 음소거 중' : '볼륨 조절';
+  $('volume-button').setAttribute('aria-label', label);
+  $('volume-button').title = label;
+  $('volume-button')
     .querySelector('use')
     .setAttribute('href', muted ? '#i-muted' : '#i-sound');
   $('sound-toggle').setAttribute('aria-pressed', String(muted));
@@ -139,11 +142,31 @@ function updateVolumes() {
   }
 }
 function setSettings(open, focus = true) {
+  if (open) {
+    setVolumePanel(false);
+    cancelPointer();
+  }
   $('game-settings').hidden = !open;
   $('settings-button').setAttribute('aria-expanded', String(open));
   if (focus) {
     $(open ? 'next-preview-toggle' : 'settings-button').focus({ preventScroll: true });
   }
+}
+function setVolumePanel(open, focus = false) {
+  window.clearTimeout(volumeCloseTimer);
+  volumeCloseTimer = null;
+  if (open) {
+    setSettings(false, false);
+    cancelPointer();
+  }
+  $('volume-panel').hidden = !open;
+  $('volume-button').setAttribute('aria-expanded', String(open));
+  if (focus) {
+    $(open ? 'music-volume' : 'volume-button').focus({ preventScroll: true });
+  }
+}
+function updateHitboxes() {
+  $('hitbox-toggle').checked = showHitboxes;
 }
 function updateNextPreview() {
   $('next-preview-toggle').checked = showNextPreview;
@@ -192,6 +215,7 @@ function showModal({
   footnote = '',
 }) {
   setSettings(false, false);
+  setVolumePanel(false);
   cancelPointer();
   stopAudio();
   modalKind = kind;
@@ -218,6 +242,8 @@ function showModal({
   }
 }
 function hideModal() {
+  setSettings(false, false);
+  setVolumePanel(false);
   $('overlay').hidden = true;
   modalKind = null;
   accumulator = 0;
@@ -558,6 +584,11 @@ function drawBoard() {
     ctx.fillText(label.text, label.x, label.y);
   }
   ctx.globalAlpha = 1;
+  if (showHitboxes) {
+    for (const body of game.bodies.values()) {
+      drawCatHitbox(ctx, body);
+    }
+  }
 }
 function advanceEffects(dt) {
   const factor = dt / 16.67;
@@ -699,7 +730,12 @@ document.addEventListener('keydown', (event) => {
   if ($('overlay').hidden) {
     return;
   }
-  const buttons = [...$('modal').querySelectorAll('button')].filter(
+  const panel = !$('game-settings').hidden
+    ? $('game-settings')
+    : !$('volume-panel').hidden
+      ? $('volume-panel')
+      : $('modal');
+  const buttons = [...panel.querySelectorAll('button, input')].filter(
     (button) => !button.hidden && !button.disabled,
   );
   if (event.key === 'Tab' && buttons.length) {
@@ -707,13 +743,13 @@ document.addEventListener('keydown', (event) => {
       last = buttons.at(-1);
     if (
       event.shiftKey &&
-      (document.activeElement === first || !$('modal').contains(document.activeElement))
+      (document.activeElement === first || !panel.contains(document.activeElement))
     ) {
       event.preventDefault();
       last.focus();
     } else if (
       !event.shiftKey &&
-      (document.activeElement === last || !$('modal').contains(document.activeElement))
+      (document.activeElement === last || !panel.contains(document.activeElement))
     ) {
       event.preventDefault();
       first.focus();
@@ -753,7 +789,33 @@ $('restart-button').addEventListener('click', () => {
   }
 });
 $('help-button').addEventListener('click', help);
-$('mute-button').addEventListener('click', toggleMute);
+$('volume-button').addEventListener('click', () => setVolumePanel(true, true));
+$('volume-close').addEventListener('click', () => setVolumePanel(false, true));
+$('volume-control').addEventListener('pointerenter', (event) => {
+  if (event.pointerType === 'mouse') {
+    setVolumePanel(true);
+  }
+});
+$('volume-control').addEventListener('pointerleave', () => {
+  window.clearTimeout(volumeCloseTimer);
+  volumeCloseTimer = window.setTimeout(() => {
+    volumeCloseTimer = null;
+    if (!$('volume-panel').contains(document.activeElement)) {
+      setVolumePanel(false);
+    }
+  }, 180);
+});
+$('volume-control').addEventListener('focusout', (event) => {
+  if (!$('volume-control').contains(event.relatedTarget)) {
+    setVolumePanel(false);
+  }
+});
+$('volume-control').addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && !$('volume-panel').hidden) {
+    event.preventDefault();
+    setVolumePanel(false, true);
+  }
+});
 $('sound-toggle').addEventListener('click', toggleMute);
 $('settings-button').addEventListener('click', () => setSettings($('game-settings').hidden));
 $('settings-close').addEventListener('click', () => setSettings(false));
@@ -763,6 +825,12 @@ $('next-preview-toggle').addEventListener('change', (event) => {
   updateNextPreview();
   resize();
 });
+$('hitbox-toggle').addEventListener('change', (event) => {
+  showHitboxes = event.target.checked;
+  storage.set('nyang-drop.hitboxes', showHitboxes);
+  updateHitboxes();
+  drawBoard();
+});
 $('game-settings').addEventListener('keydown', (event) => {
   if (event.key === 'Escape') {
     event.preventDefault();
@@ -770,6 +838,9 @@ $('game-settings').addEventListener('keydown', (event) => {
   }
 });
 document.addEventListener('pointerdown', (event) => {
+  if (!$('volume-panel').hidden && !$('volume-control').contains(event.target)) {
+    setVolumePanel(false);
+  }
   if (
     !$('game-settings').hidden &&
     !$('game-settings').contains(event.target) &&
@@ -966,7 +1037,9 @@ renderCollection();
 updateMute();
 updateVolumes();
 setSettings(false, false);
+setVolumePanel(false);
 updateNextPreview();
+updateHitboxes();
 resize();
 requestAnimationFrame(frame);
 try {
