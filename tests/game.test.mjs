@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import Matter from 'matter-js';
+import { catBounds } from '../dist/cat-collider.js';
 import { CatGame, CATS, RULES, mergePoints } from '../dist/game-core.js';
 
 const make = (random = () => 0) => {
@@ -42,7 +43,7 @@ test('different levels remain separate and stack above the floor', () => {
   assert.equal(game.bodies.size, 2);
   assert.equal(game.score, 0);
   for (const b of game.bodies.values()) {
-    assert.ok(b.position.y + b.circleRadius <= RULES.floor + 2);
+    assert.ok(catBounds(b).maxY <= RULES.floor + 2);
   }
 });
 test('merges can chain into a further level', () => {
@@ -220,9 +221,9 @@ test('seeded extended play keeps bodies finite and within side/floor bounds', ()
       run(game, 700);
       for (const b of game.bodies.values()) {
         assert.ok(Number.isFinite(b.position.x) && Number.isFinite(b.position.y));
-        assert.ok(b.position.x - b.circleRadius >= RULES.left - 3, 'left wall penetration');
-        assert.ok(b.position.x + b.circleRadius <= RULES.right + 3, 'right wall penetration');
-        assert.ok(b.position.y + b.circleRadius <= RULES.floor + 3, 'floor penetration');
+        assert.ok(catBounds(b).minX >= RULES.left - 3, 'left wall penetration');
+        assert.ok(catBounds(b).maxX <= RULES.right + 3, 'right wall penetration');
+        assert.ok(catBounds(b).maxY <= RULES.floor + 3, 'floor penetration');
       }
     }
     assert.ok(game.merges > 0);

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import Matter from 'matter-js';
+import { catBounds, catOrigin } from '../dist/cat-collider.js';
 import { CatGame, CATS } from '../dist/game-core.js';
 import { CAT_OUTLINES } from '../dist/cat-outlines.js';
 import { visibleCatsTouch } from '../dist/merge-contact.js';
@@ -22,8 +23,8 @@ test('screenshot reproduction: two diagonal white cats touching outside their ci
   const a = game.addCat(5, 251, 360, { angle: 0.277655, eligible: true });
   const b = game.addCat(5, 363, 327.25, { angle: -0.026628, eligible: true });
   assert.ok(
-    Math.hypot(a.position.x - b.position.x, a.position.y - b.position.y) >
-      a.circleRadius + b.circleRadius,
+    Math.hypot(catOrigin(a).x - catOrigin(b).x, catOrigin(a).y - catOrigin(b).y) >
+      a.cat.radius + b.cat.radius,
   );
   Matter.Sleeping.set(a, true);
   Matter.Sleeping.set(b, true);
@@ -87,14 +88,14 @@ test('different levels and terminal cats remain excluded from visual merge check
 
 test('cached outlines update after rotation and movement', () => {
   const { game } = fixture();
-  const a = game.addCat(5, 251, 360, { angle: 0.277655 }),
-    b = game.addCat(5, 363, 327.25, { angle: -0.026628 });
+  const a = game.addCat(5, 200, 350),
+    b = game.addCat(5, 310, 350);
   assert.equal(visibleCatsTouch(a, b), true);
-  Matter.Body.setPosition(a, { x: 210, y: 360 });
+  Matter.Body.translate(a, { x: -41, y: 0 });
   assert.equal(visibleCatsTouch(a, b), false);
-  Matter.Body.setPosition(a, { x: 251, y: 360 });
+  Matter.Body.translate(a, { x: 41, y: 0 });
   assert.equal(visibleCatsTouch(a, b), true);
-  Matter.Body.setAngle(a, -1);
+  Matter.Body.setAngle(a, Math.PI / 2);
   assert.equal(visibleCatsTouch(a, b), false);
 });
 
@@ -113,8 +114,8 @@ test('overlapping larger merge results cannot push cats through the container', 
   Matter.Body.setPosition(cat, { x: 55, y: 600 });
   Matter.Body.setVelocity(cat, { x: -3, y: 3 });
   game.step();
-  assert.ok(cat.position.x - cat.circleRadius >= 22);
-  assert.ok(cat.position.y + cat.circleRadius <= 622);
+  assert.ok(catBounds(cat).minX >= 22);
+  assert.ok(catBounds(cat).maxY <= 622);
   assert.ok(cat.velocity.x >= 0);
   assert.ok(cat.velocity.y <= 0);
 });

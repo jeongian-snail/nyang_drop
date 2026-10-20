@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import Matter from 'matter-js';
+import { catOrigin } from '../dist/cat-collider.js';
 import { CatGame } from '../dist/game-core.js';
 import { drawCatHitbox } from '../dist/hitboxes.js';
 import { CAT_OUTLINES } from '../dist/cat-outlines.js';
@@ -53,9 +54,10 @@ test('hitboxes follow actual engine vertices and rotated merge outlines without 
   );
   assert.deepEqual(paths[0].dash, []);
   assert.deepEqual(paths[1].dash, [4, 3]);
+  const origin = catOrigin(body);
   const expected = CAT_OUTLINES[body.cat.level].points.map(([px, py]) => [
-    body.position.x + body.circleRadius * (Math.cos(body.angle) * px - Math.sin(body.angle) * py),
-    body.position.y + body.circleRadius * (Math.sin(body.angle) * px + Math.cos(body.angle) * py),
+    origin.x + body.cat.radius * (Math.cos(body.angle) * px - Math.sin(body.angle) * py),
+    origin.y + body.cat.radius * (Math.sin(body.angle) * px + Math.cos(body.angle) * py),
   ]);
   assert.deepEqual(paths[1].points, expected);
   assert.equal(snapshot(), before);

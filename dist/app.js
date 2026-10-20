@@ -1,9 +1,10 @@
-import { CatGame, CATS, RULES, SPRITE, clamp } from './game-core.js?v=5';
+import { CatGame, CATS, RULES, SPRITE, clamp } from './game-core.js?v=6';
 import { createSeed, normalizeSeed } from './seed.js';
 import { createIntro } from './intro.js?v=3';
 import { createGameAudio } from './audio.js?v=3';
 import { CAT_OUTLINES } from './cat-outlines.js';
-import { drawCatHitbox } from './hitboxes.js';
+import { drawCatHitbox } from './hitboxes.js?v=2';
+import { catOrigin } from './cat-collider.js';
 
 if (window.nyangStartup?.failed) {
   throw new Error('Game startup failed; reload to retry');
@@ -387,7 +388,7 @@ function gameEvent(event) {
     tone('drop');
   }
   if (event.type === 'merge') {
-    const { position } = event.body;
+    const position = catOrigin(event.body);
     if (!reducedMotion) {
       for (let i = 0; i < 12; i++) {
         const angle = (Math.PI * 2 * i) / 12;
@@ -512,25 +513,19 @@ function drawBoard() {
         scale = 1 + Math.sin((age / 220) * Math.PI) * 0.08;
       }
     }
-    drawCat(
-      body.cat.level,
-      body.position.x,
-      body.position.y,
-      CATS[body.cat.level].radius,
-      body.angle,
-      1,
-      scale,
-    );
+    const origin = catOrigin(body);
+    drawCat(body.cat.level, origin.x, origin.y, CATS[body.cat.level].radius, body.angle, 1, scale);
   }
   if (game.state === 'playing') {
     const radius = CATS[game.current].radius,
       x = game.aimX;
     let landingY = RULES.floor - radius;
     for (const body of game.bodies.values()) {
+      const origin = catOrigin(body);
       const sum = radius + CATS[body.cat.level].radius,
-        dx = body.position.x - x;
+        dx = origin.x - x;
       if (Math.abs(dx) < sum) {
-        landingY = Math.min(landingY, body.position.y - Math.sqrt(sum * sum - dx * dx));
+        landingY = Math.min(landingY, origin.y - Math.sqrt(sum * sum - dx * dx));
       }
     }
     landingY = Math.max(RULES.spawnY + radius, landingY);

@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import Matter from 'matter-js';
+import { catBounds } from '../dist/cat-collider.js';
 import { CatGame, RULES } from '../dist/game-core.js';
 
 test('yellow cat falls after the cats supporting it merge away', () => {
@@ -43,7 +44,7 @@ test('settled cats keep responding to gravity when a support disappears', () => 
     game.step();
   }
   assert.ok(yellow.position.y > restingY + 70);
-  assert.ok(Math.abs(yellow.position.y + yellow.circleRadius - RULES.floor) < 2);
+  assert.ok(Math.abs(catBounds(yellow).maxY - RULES.floor) < 2);
 });
 
 test('a whole sleeping stack wakes when its floor moves; cats cannot support a floating group', () => {
@@ -51,11 +52,16 @@ test('a whole sleeping stack wakes when its floor moves; cats cannot support a f
   game.start();
   const platform = Matter.Bodies.rectangle(220, 500, 220, 20, { isStatic: true, label: 'floor' });
   Matter.Composite.add(game.engine.world, platform);
-  const cats = [
-    [3, 452],
-    [2, 383],
-    [1, 327],
-  ].map(([level, y]) => game.addCat(level, 220, y, { eligible: true }));
+  const cats = [];
+  let surfaceY = catBounds(platform).minY;
+  for (const level of [3, 2, 1]) {
+    const cat = game.addCat(level, 220, 300, { eligible: true });
+    Matter.Body.translate(cat, { x: 0, y: surfaceY - catBounds(cat).maxY });
+    // Place the next chin on this cat's highest outline vertex.
+    const top = cat.vertices.reduce((a, b) => (a.y < b.y ? a : b));
+    cats.push(cat);
+    surfaceY = top.y;
+  }
   cats.forEach((cat) => Matter.Sleeping.set(cat, true));
   game.step();
   assert.ok(cats.every((cat) => cat.isSleeping));

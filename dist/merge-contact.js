@@ -1,4 +1,5 @@
 import { CAT_OUTLINES } from './cat-outlines.js';
+import { catOrigin } from './cat-collider.js';
 
 // Only bridge subpixel/antialiased edge gaps, not a percentage of the cat's size.
 const EDGE_TOLERANCE = 1.25;
@@ -6,9 +7,9 @@ const cache = new WeakMap();
 const cross = (ax, ay, bx, by) => ax * by - ay * bx;
 
 function geometry(body) {
-  const { x, y } = body.position,
+  const { x, y } = catOrigin(body),
     angle = body.angle,
-    radius = body.circleRadius;
+    radius = body.cat.radius;
   const prior = cache.get(body);
   if (prior && prior.x === x && prior.y === y && prior.angle === angle) {
     return prior;
@@ -114,8 +115,10 @@ export function getCatOutlinePoints(body) {
 export function visibleCatsTouch(a, b) {
   const outlineA = CAT_OUTLINES[a.cat.level],
     outlineB = CAT_OUTLINES[b.cat.level];
-  const reach = a.circleRadius * outlineA.bound + b.circleRadius * outlineB.bound + EDGE_TOLERANCE;
-  if ((a.position.x - b.position.x) ** 2 + (a.position.y - b.position.y) ** 2 > reach ** 2) {
+  const reach = a.cat.radius * outlineA.bound + b.cat.radius * outlineB.bound + EDGE_TOLERANCE;
+  const originA = catOrigin(a),
+    originB = catOrigin(b);
+  if ((originA.x - originB.x) ** 2 + (originA.y - originB.y) ** 2 > reach ** 2) {
     return false;
   }
   const shapeA = geometry(a),

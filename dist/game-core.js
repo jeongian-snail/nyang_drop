@@ -1,4 +1,5 @@
-import { visibleCatsTouch } from './merge-contact.js';
+import { visibleCatsTouch } from './merge-contact.js?v=3';
+import { createCatBody, catBounds, catOrigin, catSpawnRange, catSupported } from './cat-collider.js';
 import { createSeededRandom, normalizeSeed } from './seed.js';
 export { SPRITE } from './cat-outlines.js';
 
@@ -119,36 +120,31 @@ export class CatGame {
     }
   }
   aim(x) {
-    const r = CATS[this.current].radius;
-    this.aimX = clamp(x, RULES.left + r + 1, RULES.right - r - 1);
+    const range = catSpawnRange(this.current, CATS[this.current].radius);
+    this.aimX = clamp(x, RULES.left - range.minX + 1, RULES.right - range.maxX - 1);
     return this.aimX;
   }
   get canDrop() {
     return this.state === 'playing' && this.time + 0.001 >= this.cooldownUntil;
   }
   addCat(level, x, y, { eligible = false, velocity, angle = 0 } = {}) {
-    const { Bodies, Body, Composite } = this.M;
-    const r = CATS[level].radius;
-    const body = Bodies.circle(
-      clamp(x, RULES.left + r, RULES.right - r),
-      Math.min(y, RULES.floor - r),
-      r,
-      {
-        label: 'cat',
-        restitution: 0.15,
-        friction: 0.32,
-        frictionStatic: 0.7,
-        frictionAir: 0.012,
-        density: 0.001,
-        slop: 0.03,
-        sleepThreshold: 90,
-      },
-    );
-    body.cat = { level, bornAt: this.time, eligible, popAt: this.time };
+    const { Body, Composite } = this.M;
+    const body = createCatBody(this.M, level, CATS[level].radius, x, y, {
+      label: 'cat',
+      restitution: 0.08,
+      friction: 0.45,
+      frictionStatic: 0.9,
+      frictionAir: 0.012,
+      density: 0.001,
+      slop: 0.03,
+      sleepThreshold: 90,
+      angle,
+    });
+    Object.assign(body.cat, { bornAt: this.time, eligible, popAt: this.time });
     if (velocity) {
       Body.setVelocity(body, velocity);
     }
-    Body.setAngle(body, angle);
+    this.keepCatInBounds(body);
     this.bodies.set(body.id, body);
     Composite.add(this.engine.world, body);
     this.highest = Math.max(this.highest, level);
@@ -184,7 +180,7 @@ export class CatGame {
       if (this.time - body.cat.bornAt >= RULES.grace) {
         body.cat.eligible = true;
       }
-      if (body.cat.eligible && body.position.y - CATS[body.cat.level].radius < RULES.line) {
+      if (body.cat.eligible && catBounds(body).minY < RULES.line) {
         overflow = true;
       }
     }
@@ -198,32 +194,20 @@ export class CatGame {
     if (this.engine.gravity.y <= 0 || ![...this.bodies.values()].some((body) => body.isSleeping)) {
       return;
     }
-    // Sleeping collision pairs may be cached or inactive. Rebuild support from
-    // current positions, bottom-up, so a floating group cannot support itself.
-    // Circles are polygonal in Matter; tolerate their small edge gaps, not a
-    // visible distance. Static side walls alone never count as a floor.
-    const gap = 1.5;
+    // Rebuild the support graph from current polygons, bottom-up. Cached contact
+    // pairs and circular distances cannot tell whether a rotated chin is resting.
     const floors = this.M.Composite.allBodies(this.engine.world).filter(
       (body) => body.isStatic && body.label === 'floor',
     );
     const grounded = [];
     const cats = [...this.bodies.values()].sort((a, b) => b.position.y - a.position.y);
+    const bounds = new Map([...floors, ...cats].map((body) => [body, catBounds(body)]));
+    const supportedBy = (body, support) =>
+      catSupported(body, support, 1.5, bounds.get(body), bounds.get(support));
     for (const body of cats) {
-      const { x, y } = body.position,
-        radius = body.circleRadius;
-      const onFloor = floors.some(
-        (floor) =>
-          x >= floor.bounds.min.x &&
-          x <= floor.bounds.max.x &&
-          Math.abs(y + radius - floor.bounds.min.y) <= gap,
-      );
       const supported =
-        onFloor ||
-        grounded.some((support) => {
-          const dx = x - support.position.x,
-            dy = support.position.y - y;
-          return dy > 0.5 && dx * dx + dy * dy <= (radius + support.circleRadius + gap) ** 2;
-        });
+        floors.some((floor) => supportedBy(body, floor)) ||
+        grounded.some((support) => supportedBy(body, support));
       if (body.isStatic || supported) {
         grounded.push(body);
       } else if (body.isSleeping) {
@@ -231,34 +215,41 @@ export class CatGame {
       }
     }
   }
+  keepCatInBounds(body) {
+    // Use current polygon vertices, not velocity-expanded Matter bounds or a
+    // decorative circle. Otherwise wall corrections continuously drive rotation.
+    const bounds = catBounds(body);
+    const dx =
+      bounds.minX < RULES.left
+        ? RULES.left - bounds.minX
+        : bounds.maxX > RULES.right
+          ? RULES.right - bounds.maxX
+          : 0;
+    const dy = Math.min(0, RULES.floor - bounds.maxY);
+    if (Math.abs(dx) < 0.000001 && Math.abs(dy) < 0.000001) {
+      return;
+    }
+    const velocity = { ...body.velocity };
+    if ((dx > 0 && velocity.x < 0) || (dx < 0 && velocity.x > 0)) {
+      velocity.x = 0;
+    }
+    if (dy < 0) {
+      body.cat.eligible = true;
+      if (velocity.y > 0) {
+        velocity.y = 0;
+      }
+    }
+    this.M.Body.translate(body, { x: dx, y: dy });
+    this.M.Body.setVelocity(body, velocity);
+  }
   keepCatsInBounds() {
-    // A merge can instantly enlarge a body inside a crowded stack. Resolve any
-    // resulting wall penetration before testing contacts or drawing this step.
     for (const body of this.bodies.values()) {
-      const radius = body.circleRadius,
-        { x, y } = body.position;
-      const nextX = clamp(x, RULES.left + radius, RULES.right - radius);
-      const nextY = Math.min(y, RULES.floor - radius);
-      if (nextX === x && nextY === y) {
-        continue;
-      }
-      const velocity = { ...body.velocity };
-      if ((x < nextX && velocity.x < 0) || (x > nextX && velocity.x > 0)) {
-        velocity.x = 0;
-      }
-      if (y > nextY) {
-        body.cat.eligible = true;
-        if (velocity.y > 0) {
-          velocity.y = 0;
-        }
-      }
-      this.M.Body.setPosition(body, { x: nextX, y: nextY });
-      this.M.Body.setVelocity(body, velocity);
+      this.keepCatInBounds(body);
     }
   }
   findVisibleContacts() {
-    // Physics circles intentionally stay simple. Merge contact also follows the
-    // actual opaque sprite outline, including ears, even for sleeping bodies.
+    // In addition to physical contacts, follow the opaque sprite outline for
+    // same-level merges, including ears and already-sleeping bodies.
     const levels = Array.from({ length: 9 }, () => []);
     for (const body of this.bodies.values()) {
       if (body.cat.level < 9) {
@@ -289,8 +280,10 @@ export class CatGame {
         continue;
       }
       const level = a.cat.level + 1;
-      const x = (a.position.x + b.position.x) / 2,
-        y = (a.position.y + b.position.y) / 2;
+      const originA = catOrigin(a),
+        originB = catOrigin(b);
+      const x = (originA.x + originB.x) / 2,
+        y = (originA.y + originB.y) / 2;
       const velocity = {
         x: clamp((a.velocity.x + b.velocity.x) / 2, -3, 3),
         y: clamp((a.velocity.y + b.velocity.y) / 2, -2, 2),
