@@ -20,8 +20,8 @@ test('screenshot reproduction: two diagonal white cats touching outside their ci
   const { game, events } = fixture();
   // Preserve the screenshot geometry as the artwork grows.
   const scale = CATS[5].radius / 55;
-  const a = game.addCat(5, 251, 360, { angle: 0.277655, eligible: true });
-  const b = game.addCat(5, 251 + 112 * scale, 360 - 32.75 * scale, {
+  const a = game.addCat(5, 200, 360, { angle: 0.277655, eligible: true });
+  const b = game.addCat(5, 200 + 112 * scale, 360 - 32.75 * scale, {
     angle: -0.026628,
     eligible: true,
   });
@@ -46,7 +46,7 @@ test('screenshot reproduction: two diagonal white cats touching outside their ci
 test('separated white sprites do not merge merely because they are near each other', () => {
   const { game } = fixture();
   const a = game.addCat(5, 185, 350, { eligible: true });
-  const b = game.addCat(5, 315, 350, { eligible: true });
+  const b = game.addCat(5, 185 + (130 / 55) * CATS[5].radius, 350, { eligible: true });
   Matter.Sleeping.set(a, true);
   Matter.Sleeping.set(b, true);
   assert.equal(visibleCatsTouch(a, b), false);

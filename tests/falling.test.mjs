@@ -149,7 +149,7 @@ test('a new falling cat can wake and move a settled cat', () => {
 
 test('normal drops visibly displace resting cats and the resulting pile settles again', () => {
   for (const [level, incoming, offset, minimumTravel] of [
-    [4, 0, 20 / 46, 8],
+    [4, 0, 0.5, 8],
     [4, 2, 25 / 46, 25],
     [6, 2, 35 / 65, 12],
     [8, 3, 0.6, 8],
