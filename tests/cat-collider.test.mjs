@@ -22,7 +22,7 @@ function foreheadY(level) {
 test('all cats use smaller circular face colliders without shrinking the artwork', () => {
   assert.deepEqual(
     CATS.map((cat) => cat.radius),
-    [19, 25, 31, 38, 46, 55, 65, 76, 88, 102],
+    [19, 25, 31, 38, 46, 55, 65, 76, 88, 102, 118],
   );
   for (let level = 0; level < CATS.length; level++) {
     const radius = CATS[level].radius;
@@ -63,7 +63,7 @@ test('a small cat settles against the forehead instead of floating between large
 });
 
 test('large circular cats settle on the floor without repeated boundary corrections', () => {
-  for (const level of [6, 7, 8, 9]) {
+  for (const level of [6, 7, 8, 9, 10]) {
     const game = new CatGame(Matter);
     game.start();
     const body = game.addCat(level, 220, 400, { eligible: true });

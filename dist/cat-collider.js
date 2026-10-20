@@ -1,4 +1,4 @@
-import { CAT_OUTLINES } from './cat-outlines.js';
+import { CAT_OUTLINES } from './cat-outlines.js?v=2';
 
 // Fit the face between the central forehead and chin, excluding the ears.
 // Radius and vertical centre are fractions of the unchanged artwork radius.
@@ -13,6 +13,7 @@ export const CAT_COLLIDERS = Object.freeze([
   { scale: 0.83, offsetY: 0.05 },
   { scale: 0.8, offsetY: 0.085 },
   { scale: 0.77, offsetY: 0.11 },
+  { scale: 0.75, offsetY: 0.15 },
 ]);
 
 export function createCatBody(Matter, level, radius, x, y, options = {}) {

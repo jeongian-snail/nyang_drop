@@ -297,6 +297,27 @@ async function harness({
   };
 }
 
+test('the collection includes level 11 and marks the Maine Coon discovered after a real merge', async () => {
+  const h = await harness();
+  const collection = h.get('cat-collection');
+  assert.equal(collection.children.length, 11);
+  assert.equal(h.get('collection-total').textContent, 11);
+  assert.match(collection.innerHTML, /11_maine_coon\.png/);
+  assert.match(collection.innerHTML, /alt="11단계 메인쿤"/);
+  assert.match(collection.attributes['aria-label'], /11단계까지/);
+  assert.equal((h.get('collection-arrows').innerHTML.match(/marker-end=/g) || []).length, 10);
+  assert.equal(collection.children[10].classList.contains('found'), false);
+  const game = h.api.getGame();
+  game.addCat(9, 150, 420);
+  game.addCat(9, 290, 420);
+  game.step();
+  h.frame(16);
+  assert.equal(collection.children[10].classList.contains('found'), true);
+  assert.equal(collection.children[10].title, '11단계 · 메인쿤 · 생성 완료');
+  assert.match(h.get('toast').textContent, /11단계 달성/);
+  assert.equal(h.errors.length, 0);
+});
+
 test('seed input applies the same sequence in separate browsers and restarts from the first cat', async () => {
   const first = await harness(),
     second = await harness();

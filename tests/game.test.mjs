@@ -57,23 +57,60 @@ test('merges can chain into a further level', () => {
   assert.equal(game.score, 30);
   assert.equal(events.filter((e) => e.type === 'merge').length, 2);
 });
-test('final cats remain and level-10 award is exactly 2560 points', () => {
+test('level 10 still awards 2560 points and can now merge into the final Maine Coon', () => {
   const { game, events } = make();
   game.addCat(8, 160, 500);
   game.addCat(8, 285, 500);
   run(game, 100);
   assert.equal(game.score, 2560);
-  assert.equal(game.won, true);
-  assert.equal(events.filter((e) => e.type === 'win').length, 1);
-  const final = [...game.bodies.values()][0];
-  game.addCat(9, final.position.x, final.position.y - 180);
+  assert.equal(game.won, false);
+  assert.equal(events.filter((e) => e.type === 'win').length, 0);
+  const tenth = [...game.bodies.values()][0];
+  game.addCat(9, tenth.position.x, tenth.position.y - 150);
   run(game, 500);
-  assert.equal(game.bodies.size, 2);
-  assert.equal(game.score, 2560);
+  assert.equal(game.bodies.size, 1);
+  const final = [...game.bodies.values()][0];
+  assert.equal(final.cat.level, 10);
+  assert.equal(CATS[final.cat.level].name, '메인쿤');
+  assert.equal(game.score, 2560 + 5120);
+  assert.equal(game.highest, 10);
+  assert.equal(game.discovered.has(10), true);
+  assert.equal(game.won, true);
+  assert.equal(game.state, 'playing');
+  assert.equal(events.filter((e) => e.type === 'win').length, 1);
+  assert.equal(events.filter((e) => e.type === 'merge' && e.level === 10).length, 1);
   assert.deepEqual(
-    Array.from({ length: 9 }, (_, i) => mergePoints(i + 1)),
-    [10, 20, 40, 80, 160, 320, 640, 1280, 2560],
+    Array.from({ length: CATS.length - 1 }, (_, i) => mergePoints(i + 1)),
+    [10, 20, 40, 80, 160, 320, 640, 1280, 2560, 5120],
   );
+  for (const invalid of [-1, 0, 0.5, CATS.length, NaN]) {
+    assert.equal(mergePoints(invalid), 0);
+  }
+});
+test('two final Maine Coons stay separate without awarding extra points or a level 12', () => {
+  const { game, events } = make();
+  game.addCat(10, 140, 500, { eligible: true });
+  game.addCat(10, 300, 500, { eligible: true });
+  run(game, 3000);
+  assert.deepEqual(
+    [...game.bodies.values()].map((body) => body.cat.level),
+    [10, 10],
+  );
+  assert.equal(game.score, 0);
+  assert.equal(events.filter((event) => event.type === 'merge' || event.type === 'win').length, 0);
+  assert.equal(game.state, 'playing');
+  assert.ok([...game.bodies.values()].every((body) => body.isSleeping));
+});
+test('the final-level achievement fires once even when another Maine Coon is made', () => {
+  const { game, events } = make();
+  for (let i = 0; i < 2; i++) {
+    game.addCat(9, 150, 360);
+    game.addCat(9, 290, 360);
+    run(game, 100);
+  }
+  assert.equal(game.score, 10240);
+  assert.equal(events.filter((event) => event.type === 'win').length, 1);
+  assert.equal(events.filter((event) => event.type === 'merge' && event.level === 10).length, 2);
 });
 test('rapid drops respect 600ms cooldown, and do not queue', () => {
   const { game } = make();

@@ -1,13 +1,13 @@
-import { visibleCatsTouch } from './merge-contact.js?v=4';
+import { visibleCatsTouch } from './merge-contact.js?v=5';
 import {
   createCatBody,
   catBounds,
   catOrigin,
   catSpawnRange,
   catSupported,
-} from './cat-collider.js?v=2';
+} from './cat-collider.js?v=3';
 import { createSeededRandom, normalizeSeed } from './seed.js';
-export { SPRITE } from './cat-outlines.js';
+export { SPRITE } from './cat-outlines.js?v=2';
 
 export const RULES = Object.freeze({
   width: 440,
@@ -33,8 +33,11 @@ export const CATS = Object.freeze([
   { name: '브라운 태비', file: '08_brown_tabby.png', radius: 76, color: '#b58a67' },
   { name: '회색 패치', file: '09_gray_patch.png', radius: 88, color: '#9c9f9c' },
   { name: '거북무늬', file: '10_tortoiseshell.png', radius: 102, color: '#ba8b6e' },
+  { name: '메인쿤', file: '11_maine_coon.png', radius: 118, color: '#e3b482' },
 ]);
-export const mergePoints = (level) => (level > 0 && level < 10 ? 10 * 2 ** (level - 1) : 0);
+export const MAX_LEVEL = CATS.length - 1;
+export const mergePoints = (level) =>
+  Number.isInteger(level) && level > 0 && level <= MAX_LEVEL ? 10 * 2 ** (level - 1) : 0;
 export const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
 
 export class CatGame {
@@ -96,7 +99,7 @@ export class CatGame {
             cat.cat.eligible = true;
           }
         }
-        if (a.cat && b.cat && a.cat.level === b.cat.level && a.cat.level < 9) {
+        if (a.cat && b.cat && a.cat.level === b.cat.level && a.cat.level < MAX_LEVEL) {
           const ids = [a.id, b.id].sort((x, y) => x - y);
           this.candidates.set(ids.join(':'), ids);
         }
@@ -257,9 +260,9 @@ export class CatGame {
   findVisibleContacts() {
     // In addition to physical contacts, follow the opaque sprite outline for
     // same-level merges, including ears and already-sleeping bodies.
-    const levels = Array.from({ length: 9 }, () => []);
+    const levels = Array.from({ length: MAX_LEVEL }, () => []);
     for (const body of this.bodies.values()) {
-      if (body.cat.level < 9) {
+      if (body.cat.level < MAX_LEVEL) {
         levels[body.cat.level].push(body);
       }
     }
@@ -283,7 +286,7 @@ export class CatGame {
     for (const [aId, bId] of pairs) {
       const a = this.bodies.get(aId),
         b = this.bodies.get(bId);
-      if (!a || !b || a.cat.level !== b.cat.level || a.cat.level >= 9) {
+      if (!a || !b || a.cat.level !== b.cat.level || a.cat.level >= MAX_LEVEL) {
         continue;
       }
       const level = a.cat.level + 1;
@@ -312,7 +315,7 @@ export class CatGame {
       this.chain = this.time - this.lastMergeAt < 850 ? this.chain + 1 : 1;
       this.lastMergeAt = this.time;
       this.onEvent({ type: 'merge', body: result, level, points, chain: this.chain });
-      if (level === 9 && !this.won) {
+      if (level === MAX_LEVEL && !this.won) {
         this.won = true;
         this.onEvent({ type: 'win' });
       }

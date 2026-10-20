@@ -1,4 +1,5 @@
-import { getCatOutlinePoints } from './merge-contact.js?v=4';
+import { CAT_OUTLINES } from './cat-outlines.js?v=2';
+import { getCatOutlinePoints } from './merge-contact.js?v=5';
 
 // Render the engine's world-space vertices, not an approximate decorative circle.
 // The dashed outline is the additional same-level merge contact shape.
@@ -20,7 +21,7 @@ export function drawCatHitbox(ctx, body) {
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
-  if (body.cat.level < 9) {
+  if (body.cat.level < CAT_OUTLINES.length - 1) {
     ctx.strokeStyle = '#267f92';
     ctx.setLineDash([4, 3]);
     ctx.beginPath();

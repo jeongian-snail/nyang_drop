@@ -75,6 +75,6 @@ test('hitboxes follow actual engine vertices and rotated merge outlines without 
 test('terminal cats show only their physical collider because they cannot merge', () => {
   const game = new CatGame(Matter);
   const { ctx, paths } = recorder();
-  drawCatHitbox(ctx, game.addCat(9, 220, 450));
+  drawCatHitbox(ctx, game.addCat(10, 220, 450));
   assert.equal(paths.length, 1);
 });

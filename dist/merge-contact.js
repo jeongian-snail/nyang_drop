@@ -1,5 +1,5 @@
-import { CAT_OUTLINES } from './cat-outlines.js';
-import { catOrigin } from './cat-collider.js?v=2';
+import { CAT_OUTLINES } from './cat-outlines.js?v=2';
+import { catOrigin } from './cat-collider.js?v=3';
 
 // Only bridge subpixel/antialiased edge gaps, not a percentage of the cat's size.
 const EDGE_TOLERANCE = 1.25;

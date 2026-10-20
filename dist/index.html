@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#f7f4ec" />
     <meta
       name="description"
-      content="고양이 10종을 합치는 수박게임. 같은 단계 2마리를 합쳐 점수를 얻고 최고 기록에 도전하세요."
+      content="고양이 11종을 합치는 수박게임. 같은 단계 2마리를 합쳐 점수를 얻고 최고 기록에 도전하세요."
     />
     <title>냥냥 드롭</title>
     <script id="startup-guard">
@@ -73,7 +73,7 @@
     <link rel="preload" as="image" href="./assets/nyang-drop-logo.png" />
     <link rel="stylesheet" href="./style.css?v=22" />
     <script defer data-game-startup src="./vendor/matter.min.js"></script>
-    <script type="module" data-game-startup src="./app.js?v=26"></script>
+    <script type="module" data-game-startup src="./app.js?v=27"></script>
   </head>
   <body>
     <div class="room-backdrop" aria-hidden="true"></div>
@@ -400,7 +400,9 @@
         <section class="collection paper-card" aria-labelledby="collection-title">
           <div class="collection-heading">
             <h2 id="collection-title" class="card-title">고양이 도감</h2>
-            <span title="이번 판에서 생성한 단계"><b id="discovered-count">0</b> / 10</span>
+            <span title="이번 판에서 생성한 단계"
+              ><b id="discovered-count">0</b> / <span id="collection-total">11</span></span
+            >
           </div>
           <div class="collection-wheel">
             <svg
@@ -414,7 +416,7 @@
             </div>
             <ol
               id="cat-collection"
-              aria-label="고양이 합성 순서: 위쪽 1단계부터 시계 방향으로 10단계까지"
+              aria-label="고양이 합성 순서: 위쪽 1단계부터 시계 방향으로 11단계까지"
             ></ol>
           </div>
         </section>

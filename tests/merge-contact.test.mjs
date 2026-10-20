@@ -79,8 +79,8 @@ test('different levels and terminal cats remain excluded from visual merge check
   game.reset();
   game.start();
   game.engine.gravity.y = 0;
-  Matter.Sleeping.set(game.addCat(9, 160, 400, { eligible: true }), true);
-  Matter.Sleeping.set(game.addCat(9, 280, 400, { eligible: true }), true);
+  Matter.Sleeping.set(game.addCat(CATS.length - 1, 160, 400, { eligible: true }), true);
+  Matter.Sleeping.set(game.addCat(CATS.length - 1, 280, 400, { eligible: true }), true);
   game.step();
   assert.equal(game.bodies.size, 2);
   assert.equal(game.score, 0);
@@ -99,7 +99,7 @@ test('cached outlines update after rotation and movement', () => {
   assert.equal(visibleCatsTouch(a, b), false);
 });
 
-test('outline data is generated from exactly the ten images currently rendered', async () => {
+test('outline data is generated from exactly the images currently rendered', async () => {
   assert.equal(CAT_OUTLINES.length, CATS.length);
   for (let i = 0; i < CATS.length; i++) {
     const bytes = await readFile(new URL(`../dist/assets/${CATS[i].file}`, import.meta.url));

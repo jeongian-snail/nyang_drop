@@ -1,10 +1,10 @@
-import { CatGame, CATS, RULES, SPRITE, clamp } from './game-core.js?v=8';
+import { CatGame, CATS, RULES, SPRITE, clamp } from './game-core.js?v=9';
 import { createSeed, normalizeSeed } from './seed.js';
 import { createIntro } from './intro.js?v=3';
 import { createGameAudio } from './audio.js?v=3';
-import { CAT_OUTLINES } from './cat-outlines.js';
-import { drawCatHitbox } from './hitboxes.js?v=3';
-import { CAT_COLLIDERS, catOrigin } from './cat-collider.js?v=2';
+import { CAT_OUTLINES } from './cat-outlines.js?v=2';
+import { drawCatHitbox } from './hitboxes.js?v=4';
+import { CAT_COLLIDERS, catOrigin } from './cat-collider.js?v=3';
 
 if (window.nyangStartup?.failed) {
   throw new Error('Game startup failed; reload to retry');
@@ -423,7 +423,7 @@ function gameEvent(event) {
     announce(`${CATS[event.level].name} 합성. ${event.points}점 획득. 총 ${game.score}점.`);
   }
   if (event.type === 'win') {
-    toast('10단계 달성 · 계속 플레이할 수 있습니다', 4200);
+    toast(`${CATS.length}단계 달성 · 계속 플레이할 수 있습니다`, 4200);
     tone('win');
   }
   if (event.type === 'over') {
@@ -902,9 +902,14 @@ window.addEventListener('storage', (event) => {
 });
 
 function renderCollection() {
+  $('collection-total').textContent = CATS.length;
+  $('cat-collection').setAttribute(
+    'aria-label',
+    `고양이 합성 순서: 위쪽 1단계부터 시계 방향으로 ${CATS.length}단계까지`,
+  );
   const radius = 134,
     arrowRadius = 98;
-  // Ten equal sectors keep the cats and their indices visually aligned.
+  // Equal sectors keep the cats and their indices visually aligned.
   const arcStep = 360 / CATS.length;
   const minimum = CATS[0].radius,
     maximum = CATS.at(-1).radius;
@@ -913,7 +918,7 @@ function renderCollection() {
     return [200 + distance * Math.cos(radians), 200 + distance * Math.sin(radians)];
   };
   // Keep the existing size progression. The final gap has the same spacing,
-  // but intentionally no arrow: level 10 does not merge back into level 1.
+  // but intentionally no arrow: the final level does not merge back into level 1.
   const entries = CATS.map((cat, i) => {
     const angle = -90 + i * arcStep;
     const size = 36 + 50 * ((cat.radius - minimum) / (maximum - minimum)) ** 0.75;
