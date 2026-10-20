@@ -18,10 +18,13 @@ const fixture = () => {
 
 test('screenshot reproduction: two diagonal white cats touching outside their circles merge while asleep', () => {
   const { game, events } = fixture();
-  // Positions and rotations reconstructed from the attached image. These remain
-  // separated by 6.69 logical pixels in the old circular collision test.
+  // Preserve the screenshot geometry as the artwork grows.
+  const scale = CATS[5].radius / 55;
   const a = game.addCat(5, 251, 360, { angle: 0.277655, eligible: true });
-  const b = game.addCat(5, 363, 327.25, { angle: -0.026628, eligible: true });
+  const b = game.addCat(5, 251 + 112 * scale, 360 - 32.75 * scale, {
+    angle: -0.026628,
+    eligible: true,
+  });
   assert.ok(
     Math.hypot(catOrigin(a).x - catOrigin(b).x, catOrigin(a).y - catOrigin(b).y) >
       a.cat.radius + b.cat.radius,

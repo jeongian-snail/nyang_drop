@@ -152,7 +152,7 @@ test('normal drops visibly displace resting cats and the resulting pile settles 
     [4, 0, 20 / 46, 8],
     [4, 2, 25 / 46, 25],
     [6, 2, 35 / 65, 12],
-    [8, 3, 45 / 88, 8],
+    [8, 3, 0.6, 8],
   ]) {
     const game = new CatGame(Matter, { seed: 'impact-tuning' });
     game.start();

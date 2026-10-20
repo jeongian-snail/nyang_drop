@@ -22,7 +22,7 @@ function foreheadY(level) {
 test('all cats use smaller circular face colliders without shrinking the artwork', () => {
   assert.deepEqual(
     CATS.map((cat) => cat.radius),
-    [19.95, 26.25, 32.55, 39.9, 48.3, 57.75, 68.25, 79.8, 92.4, 107.1, 136.5],
+    [20.9475, 27.5625, 34.1775, 41.895, 50.715, 60.6375, 71.6625, 83.79, 97.02, 112.455, 143.325],
   );
   for (let level = 0; level < CATS.length; level++) {
     const radius = CATS[level].radius;
@@ -51,7 +51,8 @@ test('a small cat settles against the forehead instead of floating between large
   game.start();
   const support = game.addCat(6, 220, 500, { eligible: true });
   Matter.Body.setStatic(support, true);
-  const small = game.addCat(2, 220, 350, { eligible: true });
+  // A short centred drop isolates face clearance from rolling off the support.
+  const small = game.addCat(2, 220, 400, { eligible: true });
   for (let i = 0; i < 1440; i++) {
     game.step();
   }

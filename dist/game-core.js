@@ -23,17 +23,17 @@ export const RULES = Object.freeze({
   step: 1000 / 120,
 });
 export const CATS = Object.freeze([
-  { name: '회색 태비', file: '01_gray_tabby.png', radius: 19.95, color: '#a6a49d' },
-  { name: '치즈', file: '02_orange_tabby.png', radius: 26.25, color: '#edb789' },
-  { name: '턱시도', file: '03_tuxedo.png', radius: 32.55, color: '#53524f' },
-  { name: '삼색', file: '04_calico.png', radius: 39.9, color: '#d4ab83' },
-  { name: '샴', file: '05_siamese.png', radius: 48.3, color: '#bbaa98' },
-  { name: '하얀 고양이', file: '06_white.png', radius: 57.75, color: '#e0d8c8' },
-  { name: '블루그레이', file: '07_blue_gray.png', radius: 68.25, color: '#8c9ba4' },
-  { name: '브라운 태비', file: '08_brown_tabby.png', radius: 79.8, color: '#b58a67' },
-  { name: '회색 패치', file: '09_gray_patch.png', radius: 92.4, color: '#9c9f9c' },
-  { name: '거북무늬', file: '10_tortoiseshell.png', radius: 107.1, color: '#ba8b6e' },
-  { name: '메인쿤', file: '11_maine_coon.png', radius: 136.5, color: '#e3b482' },
+  { name: '회색 태비', file: '01_gray_tabby.png', radius: 20.9475, color: '#a6a49d' },
+  { name: '치즈', file: '02_orange_tabby.png', radius: 27.5625, color: '#edb789' },
+  { name: '턱시도', file: '03_tuxedo.png', radius: 34.1775, color: '#53524f' },
+  { name: '삼색', file: '04_calico.png', radius: 41.895, color: '#d4ab83' },
+  { name: '샴', file: '05_siamese.png', radius: 50.715, color: '#bbaa98' },
+  { name: '하얀 고양이', file: '06_white.png', radius: 60.6375, color: '#e0d8c8' },
+  { name: '블루그레이', file: '07_blue_gray.png', radius: 71.6625, color: '#8c9ba4' },
+  { name: '브라운 태비', file: '08_brown_tabby.png', radius: 83.79, color: '#b58a67' },
+  { name: '회색 패치', file: '09_gray_patch.png', radius: 97.02, color: '#9c9f9c' },
+  { name: '거북무늬', file: '10_tortoiseshell.png', radius: 112.455, color: '#ba8b6e' },
+  { name: '메인쿤', file: '11_maine_coon.png', radius: 143.325, color: '#e3b482' },
 ]);
 export const MAX_LEVEL = CATS.length - 1;
 export const mergePoints = (level) =>
