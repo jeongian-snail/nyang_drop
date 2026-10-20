@@ -1,5 +1,11 @@
 import { visibleCatsTouch } from './merge-contact.js?v=3';
-import { createCatBody, catBounds, catOrigin, catSpawnRange, catSupported } from './cat-collider.js';
+import {
+  createCatBody,
+  catBounds,
+  catOrigin,
+  catSpawnRange,
+  catSupported,
+} from './cat-collider.js';
 import { createSeededRandom, normalizeSeed } from './seed.js';
 export { SPRITE } from './cat-outlines.js';
 

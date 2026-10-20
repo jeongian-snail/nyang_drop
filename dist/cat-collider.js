@@ -55,7 +55,13 @@ export function catSpawnRange(level, radius) {
   };
 }
 
-export function catSupported(body, support, gap = 1.5, a = catBounds(body), b = catBounds(support)) {
+export function catSupported(
+  body,
+  support,
+  gap = 1.5,
+  a = catBounds(body),
+  b = catBounds(support),
+) {
   if (support.position.y <= body.position.y + 0.5) {
     return false;
   }
