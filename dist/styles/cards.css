@@ -53,6 +53,12 @@
 .instructions-card {
   margin-top: 0;
 }
+.next-preview-desktop {
+  margin-bottom: 20px;
+}
+.next-preview-mobile {
+  display: none;
+}
 .instructions-card .card-title {
   margin-bottom: 15px;
 }
@@ -113,6 +119,39 @@
   .game-layout {
     --board-width: min(600px, max(240px, calc((100svh - 292px) * 440 / 650)));
   }
+  .game-layout.preview-enabled {
+    --board-width: min(600px, max(240px, calc((100svh - 366px) * 440 / 650)));
+  }
+  .next-preview-desktop {
+    display: none;
+  }
+  .next-preview-mobile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 66px;
+    padding: 6px 12px;
+    margin-bottom: 8px;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    background: var(--card-background);
+  }
+  .next-preview-mobile img {
+    flex-shrink: 0;
+    object-fit: contain;
+  }
+  .next-preview-mobile h2 {
+    margin: 0 0 3px;
+    font-size: 10px;
+    color: #776e5e;
+  }
+  .next-preview-mobile span {
+    font-size: 11px;
+  }
+  .next-preview-mobile .level-tag {
+    margin-left: auto;
+    white-space: nowrap;
+  }
   .game-layout > .play-column {
     order: 0;
   }
@@ -160,13 +199,13 @@
   }
 }
 
-/* Preview sizes share the game's radius ratio without moving nearby labels. */
+/* Settings stay beside the toolbar without changing the game state. */
 .board-top {
   justify-content: flex-end;
   position: relative;
   z-index: 6;
 }
-.sound-panel.paper-card {
+.settings-panel.paper-card {
   position: absolute;
   top: calc(100% + 7px);
   right: 0;
@@ -175,18 +214,18 @@
   padding: 25px 16px 12px;
   box-shadow: 0 8px 24px #65583b25;
 }
-.sound-heading {
+.settings-heading {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
 }
-.sound-heading h2 {
+.settings-heading h2 {
   margin: 0;
   font-size: 13px;
   font-weight: 600;
 }
-.sound-close {
+.settings-close {
   width: 32px;
   height: 32px;
   border: 0;
@@ -194,6 +233,50 @@
   font-size: 23px;
   line-height: 1;
   border-radius: 4px;
+}
+.preview-setting {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #ece6da;
+  font-size: 12px;
+  cursor: pointer;
+}
+.preview-setting input {
+  appearance: none;
+  flex-shrink: 0;
+  width: 38px;
+  height: 22px;
+  margin: 0;
+  padding: 2px;
+  border: 1px solid #aea58f;
+  border-radius: 12px;
+  background: #ded8ca;
+  cursor: pointer;
+}
+.preview-setting input:before {
+  content: '';
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fffdf4;
+  box-shadow: 0 1px 2px #65583b40;
+}
+.preview-setting input:checked {
+  border-color: #788466;
+  background: #788466;
+}
+.preview-setting input:checked:before {
+  transform: translateX(16px);
+}
+.preview-setting input:focus-visible {
+  outline: 2px solid #788466;
+  outline-offset: 3px;
 }
 .volume-row {
   display: grid;
@@ -241,7 +324,7 @@
 }
 .seed-form {
   margin-bottom: 10px;
-  padding: 12px 14px;
+  padding: 27px 14px 14px;
   border: 1px solid var(--card-border);
   border-radius: 8px;
   background: var(--card-background);
@@ -261,7 +344,7 @@
   min-width: 0;
   flex: 1;
   width: 100%;
-  padding: 9px 10px;
+  padding: 6px 8px;
   border: 1px solid var(--card-border);
   border-radius: 5px;
   background: #fffefa;
@@ -275,8 +358,8 @@
   outline-offset: 2px;
 }
 .seed-controls button {
-  min-height: 40px;
-  padding: 8px 14px;
+  min-height: 34px;
+  padding: 6px 14px;
   border: 0;
   border-radius: 5px;
   background: #788466;
@@ -290,21 +373,4 @@
 .seed-controls :disabled {
   opacity: 0.55;
   cursor: default;
-}
-.seed-form p {
-  margin: 6px 0 0;
-  color: #776e5e;
-  font-size: 10px;
-  line-height: 1.5;
-}
-#seed-status {
-  display: flex;
-  gap: 6px;
-}
-#active-seed {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-weight: 600;
 }

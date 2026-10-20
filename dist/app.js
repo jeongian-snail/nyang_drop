@@ -43,6 +43,7 @@ function syncBest(candidate = 0) {
   }
 }
 let muted = storage.get('nyang-drop.muted', 'false') === 'true';
+let showNextPreview = storage.get('nyang-drop.next-preview', 'false') === 'true';
 const savedVolume = (key, fallback) => {
   const value = Number(storage.get(key, fallback));
   return Number.isFinite(value) ? clamp(Math.round(value), 0, 100) : fallback;
@@ -137,11 +138,24 @@ function updateVolumes() {
     $(`${name}-volume-value`).textContent = `${value}%`;
   }
 }
-function setSoundSettings(open, focus = true) {
-  $('sound-settings').hidden = !open;
-  $('volume-button').setAttribute('aria-expanded', String(open));
+function setSettings(open, focus = true) {
+  $('game-settings').hidden = !open;
+  $('settings-button').setAttribute('aria-expanded', String(open));
   if (focus) {
-    $(open ? 'music-volume' : 'volume-button').focus({ preventScroll: true });
+    $(open ? 'next-preview-toggle' : 'settings-button').focus({ preventScroll: true });
+  }
+}
+function updateNextPreview() {
+  $('next-preview-toggle').checked = showNextPreview;
+  $('game-layout').classList.toggle('preview-enabled', showNextPreview);
+  for (const suffix of ['desktop', 'mobile']) {
+    $(`next-preview-${suffix}`).hidden = !showNextPreview;
+    if (showNextPreview && game) {
+      const cat = CATS[game.next];
+      $(`next-image-${suffix}`).src = `./assets/${cat.file}`;
+      $(`next-name-${suffix}`).textContent = cat.name;
+      $(`next-level-${suffix}`).textContent = `${game.next + 1}단계`;
+    }
   }
 }
 function toggleMute() {
@@ -177,7 +191,7 @@ function showModal({
   cats = false,
   footnote = '',
 }) {
-  setSoundSettings(false, false);
+  setSettings(false, false);
   cancelPointer();
   stopAudio();
   modalKind = kind;
@@ -393,9 +407,10 @@ function updateUI(force = false) {
   if (!game) {
     return;
   }
-  const key = `${game.score}:${best}:${game.current}:${game.discovered.size}:${game.state}`;
+  const key = `${game.score}:${best}:${game.current}:${game.next}:${game.discovered.size}:${game.state}`;
   if (force || key !== lastUI) {
     lastUI = key;
+    updateNextPreview();
     for (const id of ['score', 'score-mobile']) {
       $(id).textContent = game.score.toLocaleString('ko-KR');
     }
@@ -716,8 +731,6 @@ document.addEventListener('keydown', (event) => {
 $('primary-button').addEventListener('click', () => primaryAction());
 function syncSeed() {
   $('seed-input').value = game.seed;
-  $('active-seed').textContent = game.seed;
-  $('active-seed').title = game.seed;
 }
 $('seed-form').addEventListener('submit', (event) => {
   event.preventDefault();
@@ -742,21 +755,27 @@ $('restart-button').addEventListener('click', () => {
 $('help-button').addEventListener('click', help);
 $('mute-button').addEventListener('click', toggleMute);
 $('sound-toggle').addEventListener('click', toggleMute);
-$('volume-button').addEventListener('click', () => setSoundSettings($('sound-settings').hidden));
-$('sound-close').addEventListener('click', () => setSoundSettings(false));
-$('sound-settings').addEventListener('keydown', (event) => {
+$('settings-button').addEventListener('click', () => setSettings($('game-settings').hidden));
+$('settings-close').addEventListener('click', () => setSettings(false));
+$('next-preview-toggle').addEventListener('change', (event) => {
+  showNextPreview = event.target.checked;
+  storage.set('nyang-drop.next-preview', showNextPreview);
+  updateNextPreview();
+  resize();
+});
+$('game-settings').addEventListener('keydown', (event) => {
   if (event.key === 'Escape') {
     event.preventDefault();
-    setSoundSettings(false);
+    setSettings(false);
   }
 });
 document.addEventListener('pointerdown', (event) => {
   if (
-    !$('sound-settings').hidden &&
-    !$('sound-settings').contains(event.target) &&
-    !$('volume-button').contains(event.target)
+    !$('game-settings').hidden &&
+    !$('game-settings').contains(event.target) &&
+    !$('settings-button').contains(event.target)
   ) {
-    setSoundSettings(false, false);
+    setSettings(false, false);
   }
 });
 $('music-volume').addEventListener('input', (event) => {
@@ -946,7 +965,8 @@ function loadCatImages() {
 renderCollection();
 updateMute();
 updateVolumes();
-setSoundSettings(false, false);
+setSettings(false, false);
+updateNextPreview();
 resize();
 requestAnimationFrame(frame);
 try {

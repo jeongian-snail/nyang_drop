@@ -280,7 +280,6 @@ test('seed input applies the same sequence in separate browsers and restarts fro
     h.get('seed-input').value = '  친구와-42  ';
     h.get('seed-form').fire('submit');
     assert.equal(h.api.getGame().seed, '친구와-42');
-    assert.equal(h.get('active-seed').textContent, '친구와-42');
     assert.equal(h.get('seed-input').value, '친구와-42');
     assert.equal(h.api.getGame().bodies.size, 0);
   }
@@ -331,7 +330,7 @@ test('seed confirmation survives help, changes the seed only on confirm, and bla
   h.get('seed-form').fire('submit');
   assert.ok(game.seed.length > 0);
   assert.notEqual(game.seed, '0');
-  assert.equal(h.get('active-seed').textContent, game.seed);
+  assert.equal(h.get('seed-input').value, game.seed);
 });
 
 test('seed controls cannot reset a game while a modal or intro is active', async () => {
@@ -699,11 +698,11 @@ test('volume controls preserve separate values and do not pause or drop cats', a
   const stored = { 'nyang-drop.music-volume': '23', 'nyang-drop.effects-volume': '67' };
   const h = await harness({ stored });
   const game = h.api.getGame();
-  assert.equal(h.get('sound-settings').hidden, true);
-  h.get('volume-button').fire('click');
-  assert.equal(h.get('sound-settings').hidden, false);
-  assert.equal(h.get('volume-button').attributes['aria-expanded'], 'true');
-  assert.equal(h.document.activeElement, h.get('music-volume'));
+  assert.equal(h.get('game-settings').hidden, true);
+  h.get('settings-button').fire('click');
+  assert.equal(h.get('game-settings').hidden, false);
+  assert.equal(h.get('settings-button').attributes['aria-expanded'], 'true');
+  assert.equal(h.document.activeElement, h.get('next-preview-toggle'));
   assert.equal(h.get('music-volume-value').textContent, '23%');
   assert.equal(h.get('effects-volume-value').textContent, '67%');
   h.get('music-volume').fire('input', { target: { value: '12' } });
@@ -715,16 +714,106 @@ test('volume controls preserve separate values and do not pause or drop cats', a
   assert.equal(h.get('mute-button').attributes['aria-pressed'], 'true');
   h.get('sound-toggle').fire('click');
   assert.equal(h.get('mute-button').attributes['aria-pressed'], 'false');
-  const escape = h.get('sound-settings').fire('keydown', { key: 'Escape' });
+  const escape = h.get('game-settings').fire('keydown', { key: 'Escape' });
   h.document.fire('keydown', escape);
-  assert.equal(h.get('sound-settings').hidden, true);
-  assert.equal(h.document.activeElement, h.get('volume-button'));
+  assert.equal(h.get('game-settings').hidden, true);
+  assert.equal(h.document.activeElement, h.get('settings-button'));
   assert.equal(game.state, 'playing');
   assert.equal(game.bodies.size, 0);
-  h.get('volume-button').fire('click');
+  h.get('settings-button').fire('click');
   h.document.fire('pointerdown', { target: h.get('game') });
-  assert.equal(h.get('sound-settings').hidden, true);
+  assert.equal(h.get('game-settings').hidden, true);
   const reloaded = await harness({ stored });
   assert.equal(reloaded.get('music-volume-value').textContent, '12%');
   assert.equal(reloaded.get('effects-volume-value').textContent, '0%');
+});
+
+test('next preview defaults off and remembers both on and off across visits', async () => {
+  const stored = {};
+  const h = await harness({ stored });
+  assert.equal(h.get('next-preview-toggle').checked, false);
+  assert.equal(h.get('next-preview-desktop').hidden, true);
+  assert.equal(h.get('next-preview-mobile').hidden, true);
+  h.get('settings-button').fire('click');
+  h.get('next-preview-toggle').fire('change', { target: { checked: true } });
+  assert.equal(stored['nyang-drop.next-preview'], 'true');
+  const reloaded = await harness({ stored });
+  assert.equal(reloaded.get('next-preview-toggle').checked, true);
+  for (const suffix of ['desktop', 'mobile']) {
+    assert.equal(reloaded.get(`next-preview-${suffix}`).hidden, false);
+    const cat = CATS[reloaded.api.getGame().next];
+    assert.equal(reloaded.get(`next-image-${suffix}`).src, `./assets/${cat.file}`);
+    assert.equal(reloaded.get(`next-name-${suffix}`).textContent, cat.name);
+  }
+  reloaded.get('next-preview-toggle').fire('change', { target: { checked: false } });
+  assert.equal(stored['nyang-drop.next-preview'], 'false');
+  const hiddenAgain = await harness({ stored });
+  assert.equal(hiddenAgain.get('next-preview-desktop').hidden, true);
+  assert.equal(hiddenAgain.get('next-preview-mobile').hidden, true);
+});
+
+test('preview reads the seeded queue without changing it and refreshes after repeated cats', async () => {
+  const h = await harness({ stored: { 'nyang-drop.next-preview': 'true' } });
+  h.get('seed-input').value = 'preview-queue';
+  h.get('seed-form').fire('submit');
+  const game = h.api.getGame();
+  const reference = new CatGame(Matter, { seed: game.seed });
+  reference.start();
+  let repeatedCurrent = false;
+  for (let i = 0; i < 20; i++) {
+    const before = [
+      game.seed,
+      game.current,
+      game.next,
+      game.score,
+      game.time,
+      game.bodies.size,
+      game.state,
+    ];
+    for (const checked of [false, true]) {
+      h.get('next-preview-toggle').fire('change', { target: { checked } });
+      assert.deepEqual(
+        [game.seed, game.current, game.next, game.score, game.time, game.bodies.size, game.state],
+        before,
+      );
+    }
+    const previousCurrent = game.current;
+    const previousNext = game.next;
+    game.time = game.cooldownUntil;
+    reference.time = reference.cooldownUntil;
+    assert.equal(game.drop(), true);
+    assert.equal(reference.drop(), true);
+    h.frame(0);
+    assert.deepEqual([game.current, game.next], [reference.current, reference.next]);
+    repeatedCurrent ||= previousCurrent === game.current && previousNext !== game.next;
+    for (const suffix of ['desktop', 'mobile']) {
+      assert.equal(h.get(`next-image-${suffix}`).src, `./assets/${CATS[game.next].file}`);
+      assert.equal(h.get(`next-level-${suffix}`).textContent, `${game.next + 1}단계`);
+    }
+  }
+  assert.equal(repeatedCurrent, true);
+});
+
+test('preview switch still works when browser storage is blocked', async () => {
+  const h = await harness();
+  h.get('next-preview-toggle').fire('change', { target: { checked: true } });
+  assert.equal(h.get('next-preview-desktop').hidden, false);
+  h.get('next-preview-toggle').fire('change', { target: { checked: false } });
+  assert.equal(h.get('next-preview-mobile').hidden, true);
+  assert.equal(h.api.getGame().state, 'playing');
+  assert.equal(h.errors.length, 0);
+});
+
+test('settings markup labels the switch and keeps preview hidden before startup', async () => {
+  const html = await readFile(new URL('../dist/index.html', import.meta.url), 'utf8');
+  const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map((match) => match[1]);
+  assert.equal(new Set(ids).size, ids.length);
+  for (const id of ['settings-button', 'game-settings', 'settings-close', 'next-preview-toggle']) {
+    assert.ok(ids.includes(id));
+  }
+  assert.match(html, /for="next-preview-toggle"/);
+  assert.match(html, /id="next-preview-toggle"[^>]*type="checkbox"[^>]*role="switch"/);
+  for (const suffix of ['desktop', 'mobile']) {
+    assert.match(html, new RegExp(`id="next-preview-${suffix}"[^>]*\\bhidden`));
+  }
 });

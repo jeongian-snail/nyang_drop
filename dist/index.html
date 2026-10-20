@@ -71,9 +71,9 @@
     </script>
     <link rel="icon" href="./assets/02_orange_tabby.png" />
     <link rel="preload" as="image" href="./assets/nyang-drop-logo.png" />
-    <link rel="stylesheet" href="./style.css?v=18" />
+    <link rel="stylesheet" href="./style.css?v=21" />
     <script defer data-game-startup src="./vendor/matter.min.js"></script>
-    <script type="module" data-game-startup src="./app.js?v=20"></script>
+    <script type="module" data-game-startup src="./app.js?v=22"></script>
   </head>
   <body>
     <div class="room-backdrop" aria-hidden="true"></div>
@@ -87,10 +87,11 @@
         <symbol id="i-muted" viewBox="0 0 24 24">
           <path d="M11 5 6 9H3v6h3l5 4V5ZM16 9l5 6M21 9l-5 6" />
         </symbol>
-        <symbol id="i-volume" viewBox="0 0 24 24">
-          <path d="M4 7h5m4 0h7M4 17h9m4 0h3" />
-          <circle cx="11" cy="7" r="2" />
-          <circle cx="15" cy="17" r="2" />
+        <symbol id="i-settings" viewBox="0 0 24 24">
+          <path
+            d="m9 3-.6 2.4-2 .9-2.2-.7-2 3.4 1.8 1.7v2.6L2.2 15l2 3.4 2.2-.7 2 .9L9 21h6l.6-2.4 2-.9 2.2.7 2-3.4-1.8-1.7v-2.6L21.8 9l-2-3.4-2.2.7-2-.9L15 3Z"
+          />
+          <circle cx="12" cy="12" r="3" />
         </symbol>
         <symbol id="i-help" viewBox="0 0 24 24">
           <circle cx="12" cy="12" r="9" />
@@ -157,6 +158,21 @@
     </div>
     <main id="game-layout" class="game-layout intro-concealed" inert aria-label="냥냥 드롭">
       <aside class="intro-column">
+        <section
+          id="next-preview-desktop"
+          class="next-card paper-card next-preview-desktop"
+          aria-labelledby="next-title-desktop"
+          hidden
+        >
+          <h2 id="next-title-desktop" class="card-title">다음 고양이</h2>
+          <div class="next-cat-wrap">
+            <img id="next-image-desktop" width="105" height="105" alt="" />
+          </div>
+          <div class="next-bottom">
+            <span id="next-name-desktop"></span
+            ><span id="next-level-desktop" class="level-tag"></span>
+          </div>
+        </section>
         <section class="instructions-card paper-card" aria-labelledby="instructions-title">
           <h2 id="instructions-title" class="card-title">게임 안내</h2>
           <ol class="instruction-list">
@@ -180,7 +196,7 @@
           <div><span>점수</span><b id="score-mobile">0</b></div>
           <div><span>최고 기록</span><b id="best-mobile">0</b></div>
         </div>
-        <form id="seed-form" class="seed-form" aria-label="게임 시드 설정">
+        <form id="seed-form" class="seed-form paper-card" aria-label="게임 시드 설정">
           <div class="seed-controls">
             <label for="seed-input">시드</label>
             <input
@@ -191,14 +207,24 @@
               autocomplete="off"
               autocapitalize="off"
               spellcheck="false"
-              aria-describedby="seed-help seed-status"
               disabled
             />
             <button id="seed-apply" type="submit" disabled>적용</button>
           </div>
-          <p id="seed-help">같은 시드로 같은 순서에 도전해요.</p>
-          <p id="seed-status">현재 시드 <output id="active-seed" for="seed-input"></output></p>
         </form>
+        <section
+          id="next-preview-mobile"
+          class="next-preview-mobile"
+          aria-labelledby="next-title-mobile"
+          hidden
+        >
+          <img id="next-image-mobile" width="52" height="52" alt="" />
+          <div>
+            <h2 id="next-title-mobile">다음 고양이</h2>
+            <span id="next-name-mobile"></span>
+          </div>
+          <span id="next-level-mobile" class="level-tag"></span>
+        </section>
         <div class="board-top">
           <div class="toolbar">
             <button class="icon-button" id="help-button" aria-label="게임 방법" title="게임 방법">
@@ -215,13 +241,13 @@
             </button>
             <button
               class="icon-button"
-              id="volume-button"
-              aria-label="볼륨 조절"
-              title="볼륨 조절"
+              id="settings-button"
+              aria-label="설정"
+              title="설정"
               aria-expanded="false"
-              aria-controls="sound-settings"
+              aria-controls="game-settings"
             >
-              <svg><use href="#i-volume" /></svg>
+              <svg><use href="#i-settings" /></svg>
             </button>
             <button
               class="icon-button"
@@ -243,22 +269,26 @@
             </button>
           </div>
           <section
-            id="sound-settings"
-            class="sound-panel paper-card"
-            aria-labelledby="sound-title"
+            id="game-settings"
+            class="settings-panel paper-card"
+            aria-labelledby="settings-title"
             hidden
           >
-            <div class="sound-heading">
-              <h2 id="sound-title">볼륨</h2>
+            <div class="settings-heading">
+              <h2 id="settings-title">설정</h2>
               <button
                 type="button"
-                class="sound-close"
-                id="sound-close"
-                aria-label="볼륨 조절 닫기"
+                class="settings-close"
+                id="settings-close"
+                aria-label="설정 닫기"
               >
                 ×
               </button>
             </div>
+            <label class="preview-setting" for="next-preview-toggle">
+              <span>다음 고양이 미리보기</span>
+              <input id="next-preview-toggle" type="checkbox" role="switch" />
+            </label>
             <div class="volume-row">
               <label for="music-volume">배경음악</label
               ><output id="music-volume-value" for="music-volume" aria-hidden="true">60%</output
