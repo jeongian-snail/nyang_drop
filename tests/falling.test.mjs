@@ -146,3 +146,38 @@ test('a new falling cat can wake and move a settled cat', () => {
   assert.ok(woke);
   assert.ok(Math.abs(resting.position.x - initialX) > 0.01);
 });
+
+test('normal drops visibly displace resting cats and the resulting pile settles again', () => {
+  for (const [level, incoming, offset, minimumTravel] of [
+    [4, 0, 20, 8],
+    [4, 2, 25, 25],
+    [6, 2, 35, 12],
+    [8, 3, 45, 8],
+  ]) {
+    const game = new CatGame(Matter, { seed: 'impact-tuning' });
+    game.start();
+    const resting = game.addCat(level, 220, 500, { eligible: true });
+    for (let i = 0; i < 960; i++) {
+      game.step();
+    }
+    assert.equal(resting.isSleeping, true);
+    const initialX = resting.position.x;
+    game.current = incoming;
+    assert.equal(game.drop(initialX + offset), true);
+    let travel = 0;
+    for (let i = 0; i < 720; i++) {
+      game.step();
+      travel = Math.max(travel, initialX - resting.position.x);
+    }
+    assert.ok(travel >= minimumTravel, 'a real drop must push the resting cat away from impact');
+    assert.ok(travel < 100, 'the impact must not fling the resting cat across the container');
+    assert.equal(resting.isSleeping, true, 'the displaced cat must settle again');
+    const before = { ...resting.position, angle: resting.angle };
+    for (let i = 0; i < 1200; i++) {
+      game.step();
+      assert.ok(Math.hypot(resting.position.x - before.x, resting.position.y - before.y) < 0.05);
+      assert.ok(Math.abs(resting.angle - before.angle) < 0.001);
+    }
+    assert.equal(game.state, 'playing');
+  }
+});

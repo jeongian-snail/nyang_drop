@@ -138,8 +138,9 @@ export class CatGame {
     const body = createCatBody(this.M, level, CATS[level].radius, x, y, {
       label: 'cat',
       restitution: 0.08,
-      friction: 0.45,
-      frictionStatic: 0.9,
+      // Allow a landing cat to push its neighbours before the stack settles.
+      friction: 0.12,
+      frictionStatic: 0.35,
       frictionAir: 0.012,
       density: 0.001,
       slop: 0.03,
