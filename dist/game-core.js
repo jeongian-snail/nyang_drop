@@ -33,7 +33,7 @@ export const CATS = Object.freeze([
   { name: '브라운 태비', file: '08_brown_tabby.png', radius: 76, color: '#b58a67' },
   { name: '회색 패치', file: '09_gray_patch.png', radius: 88, color: '#9c9f9c' },
   { name: '거북무늬', file: '10_tortoiseshell.png', radius: 102, color: '#ba8b6e' },
-  { name: '메인쿤', file: '11_maine_coon.png', radius: 118, color: '#e3b482' },
+  { name: '메인쿤', file: '11_maine_coon.png', radius: 130, color: '#e3b482' },
 ]);
 export const MAX_LEVEL = CATS.length - 1;
 export const mergePoints = (level) =>

@@ -22,7 +22,7 @@ function foreheadY(level) {
 test('all cats use smaller circular face colliders without shrinking the artwork', () => {
   assert.deepEqual(
     CATS.map((cat) => cat.radius),
-    [19, 25, 31, 38, 46, 55, 65, 76, 88, 102, 118],
+    [19, 25, 31, 38, 46, 55, 65, 76, 88, 102, 130],
   );
   for (let level = 0; level < CATS.length; level++) {
     const radius = CATS[level].radius;
