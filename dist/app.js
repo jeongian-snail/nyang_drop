@@ -1,10 +1,10 @@
-import { CatGame, CATS, RULES, SPRITE, clamp } from './game-core.js?v=6';
+import { CatGame, CATS, RULES, SPRITE, clamp } from './game-core.js?v=7';
 import { createSeed, normalizeSeed } from './seed.js';
 import { createIntro } from './intro.js?v=3';
 import { createGameAudio } from './audio.js?v=3';
 import { CAT_OUTLINES } from './cat-outlines.js';
-import { drawCatHitbox } from './hitboxes.js?v=2';
-import { catOrigin } from './cat-collider.js';
+import { drawCatHitbox } from './hitboxes.js?v=3';
+import { CAT_COLLIDERS, catOrigin } from './cat-collider.js?v=2';
 
 if (window.nyangStartup?.failed) {
   throw new Error('Game startup failed; reload to retry');
@@ -519,13 +519,13 @@ function drawBoard() {
   if (game.state === 'playing') {
     const radius = CATS[game.current].radius,
       x = game.aimX;
-    let landingY = RULES.floor - radius;
+    const hitboxRadius = radius * CAT_COLLIDERS[game.current].scale;
+    let landingY = RULES.floor - hitboxRadius;
     for (const body of game.bodies.values()) {
-      const origin = catOrigin(body);
-      const sum = radius + CATS[body.cat.level].radius,
-        dx = origin.x - x;
+      const sum = hitboxRadius + body.circleRadius,
+        dx = body.position.x - x;
       if (Math.abs(dx) < sum) {
-        landingY = Math.min(landingY, origin.y - Math.sqrt(sum * sum - dx * dx));
+        landingY = Math.min(landingY, body.position.y - Math.sqrt(sum * sum - dx * dx));
       }
     }
     landingY = Math.max(RULES.spawnY + radius, landingY);
@@ -540,7 +540,7 @@ function drawBoard() {
     ctx.setLineDash([]);
     ctx.fillStyle = '#b4a48018';
     ctx.beginPath();
-    ctx.arc(x, landingY, radius, 0, Math.PI * 2);
+    ctx.arc(x, landingY, hitboxRadius, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
     drawCat(game.current, x, RULES.spawnY, radius, 0, game.canDrop ? 1 : 0.35);

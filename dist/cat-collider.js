@@ -1,22 +1,32 @@
 import { CAT_OUTLINES } from './cat-outlines.js';
 
-// Convex silhouettes retain the chin and cheeks without unstable concave ears.
-// Rendering stays anchored to the sprite, independently of the mass centroid.
+// Fit the face between the central forehead and chin, excluding the ears.
+// Radius and vertical centre are fractions of the unchanged artwork radius.
+export const CAT_COLLIDERS = Object.freeze([
+  { scale: 0.83, offsetY: 0.065 },
+  { scale: 0.85, offsetY: 0.085 },
+  { scale: 0.84, offsetY: 0.1 },
+  { scale: 0.81, offsetY: 0.085 },
+  { scale: 0.83, offsetY: 0.09 },
+  { scale: 0.83, offsetY: 0.09 },
+  { scale: 0.78, offsetY: 0.09 },
+  { scale: 0.83, offsetY: 0.05 },
+  { scale: 0.8, offsetY: 0.085 },
+  { scale: 0.77, offsetY: 0.11 },
+]);
+
 export function createCatBody(Matter, level, radius, x, y, options = {}) {
-  const vertices = Matter.Vertices.hull(
-    CAT_OUTLINES[level].points.map(([px, py]) => ({ x: px * radius, y: py * radius })),
-  );
-  const centre = Matter.Vertices.centre(vertices);
+  const profile = CAT_COLLIDERS[level];
+  const offsetY = radius * profile.offsetY;
   const angle = options.angle || 0;
-  const body = Matter.Bodies.fromVertices(0, 0, vertices, { ...options, angle: 0 });
-  body.cat = { level, radius, spriteOffset: { x: -centre.x, y: -centre.y } };
-  Matter.Body.setAngle(body, angle);
-  const cosine = Math.cos(angle),
-    sine = Math.sin(angle);
-  Matter.Body.setPosition(body, {
-    x: x + cosine * centre.x - sine * centre.y,
-    y: y + sine * centre.x + cosine * centre.y,
-  });
+  const body = Matter.Bodies.circle(
+    x - Math.sin(angle) * offsetY,
+    y + Math.cos(angle) * offsetY,
+    radius * profile.scale,
+    options,
+    32,
+  );
+  body.cat = { level, radius, spriteOffset: { x: 0, y: -offsetY } };
   return body;
 }
 

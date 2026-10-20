@@ -1,4 +1,4 @@
-import { getCatOutlinePoints } from './merge-contact.js?v=3';
+import { getCatOutlinePoints } from './merge-contact.js?v=4';
 
 // Render the engine's world-space vertices, not an approximate decorative circle.
 // The dashed outline is the additional same-level merge contact shape.

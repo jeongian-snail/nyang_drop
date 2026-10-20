@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import { readFile } from 'node:fs/promises';
 import Matter from 'matter-js';
-import { catOrigin } from '../dist/cat-collider.js';
+import { CAT_COLLIDERS, catOrigin } from '../dist/cat-collider.js';
 import { CatGame, CATS, RULES, SPRITE, clamp } from '../dist/game-core.js';
 import { createIntro } from '../dist/intro.js';
 import { createGameAudio } from '../dist/audio.js';
@@ -210,6 +210,7 @@ async function harness({
     normalizeSeed,
     drawCatHitbox,
     catOrigin,
+    CAT_COLLIDERS,
     document,
     window,
     createGameAudio: (options) =>

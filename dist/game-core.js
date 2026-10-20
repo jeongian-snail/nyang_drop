@@ -1,11 +1,11 @@
-import { visibleCatsTouch } from './merge-contact.js?v=3';
+import { visibleCatsTouch } from './merge-contact.js?v=4';
 import {
   createCatBody,
   catBounds,
   catOrigin,
   catSpawnRange,
   catSupported,
-} from './cat-collider.js';
+} from './cat-collider.js?v=2';
 import { createSeededRandom, normalizeSeed } from './seed.js';
 export { SPRITE } from './cat-outlines.js';
 
@@ -200,8 +200,8 @@ export class CatGame {
     if (this.engine.gravity.y <= 0 || ![...this.bodies.values()].some((body) => body.isSleeping)) {
       return;
     }
-    // Rebuild the support graph from current polygons, bottom-up. Cached contact
-    // pairs and circular distances cannot tell whether a rotated chin is resting.
+    // Rebuild support from the engine's current vertices, bottom-up. Matter
+    // approximates circles with polygons; nominal radii can wake resting stacks.
     const floors = this.M.Composite.allBodies(this.engine.world).filter(
       (body) => body.isStatic && body.label === 'floor',
     );

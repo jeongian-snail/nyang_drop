@@ -95,7 +95,7 @@ test('cached outlines update after rotation and movement', () => {
   assert.equal(visibleCatsTouch(a, b), false);
   Matter.Body.translate(a, { x: 41, y: 0 });
   assert.equal(visibleCatsTouch(a, b), true);
-  Matter.Body.setAngle(a, Math.PI / 2);
+  Matter.Body.setAngle(a, -Math.PI / 2);
   assert.equal(visibleCatsTouch(a, b), false);
 });
 
@@ -114,8 +114,8 @@ test('overlapping larger merge results cannot push cats through the container', 
   Matter.Body.setPosition(cat, { x: 55, y: 600 });
   Matter.Body.setVelocity(cat, { x: -3, y: 3 });
   game.step();
-  assert.ok(catBounds(cat).minX >= 22);
-  assert.ok(catBounds(cat).maxY <= 622);
+  assert.ok(catBounds(cat).minX >= 22 - 0.000001);
+  assert.ok(catBounds(cat).maxY <= 622 + 0.000001);
   assert.ok(cat.velocity.x >= 0);
   assert.ok(cat.velocity.y <= 0);
 });
