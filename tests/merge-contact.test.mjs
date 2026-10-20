@@ -88,12 +88,13 @@ test('different levels and terminal cats remain excluded from visual merge check
 
 test('cached outlines update after rotation and movement', () => {
   const { game } = fixture();
+  const scale = CATS[5].radius / 55;
   const a = game.addCat(5, 200, 350),
-    b = game.addCat(5, 310, 350);
+    b = game.addCat(5, 200 + 110 * scale, 350);
   assert.equal(visibleCatsTouch(a, b), true);
-  Matter.Body.translate(a, { x: -41, y: 0 });
+  Matter.Body.translate(a, { x: -41 * scale, y: 0 });
   assert.equal(visibleCatsTouch(a, b), false);
-  Matter.Body.translate(a, { x: 41, y: 0 });
+  Matter.Body.translate(a, { x: 41 * scale, y: 0 });
   assert.equal(visibleCatsTouch(a, b), true);
   Matter.Body.setAngle(a, -Math.PI / 2);
   assert.equal(visibleCatsTouch(a, b), false);

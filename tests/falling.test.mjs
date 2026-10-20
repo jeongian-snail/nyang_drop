@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import Matter from 'matter-js';
 import { catBounds } from '../dist/cat-collider.js';
-import { CatGame, RULES } from '../dist/game-core.js';
+import { CatGame, CATS, RULES } from '../dist/game-core.js';
 
 test('yellow cat falls after the cats supporting it merge away', () => {
   const game = new CatGame(Matter);
@@ -149,10 +149,10 @@ test('a new falling cat can wake and move a settled cat', () => {
 
 test('normal drops visibly displace resting cats and the resulting pile settles again', () => {
   for (const [level, incoming, offset, minimumTravel] of [
-    [4, 0, 20, 8],
-    [4, 2, 25, 25],
-    [6, 2, 35, 12],
-    [8, 3, 45, 8],
+    [4, 0, 20 / 46, 8],
+    [4, 2, 25 / 46, 25],
+    [6, 2, 35 / 65, 12],
+    [8, 3, 45 / 88, 8],
   ]) {
     const game = new CatGame(Matter, { seed: 'impact-tuning' });
     game.start();
@@ -163,7 +163,7 @@ test('normal drops visibly displace resting cats and the resulting pile settles 
     assert.equal(resting.isSleeping, true);
     const initialX = resting.position.x;
     game.current = incoming;
-    assert.equal(game.drop(initialX + offset), true);
+    assert.equal(game.drop(initialX + offset * CATS[level].radius), true);
     let travel = 0;
     for (let i = 0; i < 720; i++) {
       game.step();

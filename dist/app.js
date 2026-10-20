@@ -1,4 +1,4 @@
-import { CatGame, CATS, RULES, SPRITE, clamp } from './game-core.js?v=10';
+import { CatGame, CATS, RULES, SPRITE, clamp } from './game-core.js?v=11';
 import { createSeed, normalizeSeed } from './seed.js';
 import { createIntro } from './intro.js?v=3';
 import { createGameAudio } from './audio.js?v=3';
